@@ -320,13 +320,17 @@
                 this.updateProgress(status.progress, status.status);
                 
                 // Check if analysis is complete
-                if (status.status === 'COMPLETED') {
+                if (status.status === 'completed') {
+                    const sessionId = this.currentSessionId; // Save before clearing
                     this.stopPolling();
-                    this.fetchAndDisplayResults(this.currentSessionId);
-                } else if (status.status === 'FAILED') {
+                    this.fetchAndDisplayResults(sessionId);
+                } else if (status.status === 'failed') {
+                    const sessionId = this.currentSessionId; // Save before clearing
                     this.stopPolling();
                     this.showMessage('Analysis failed. Please try again.', 'error');
                     this.restoreAnalysisButtons();
+                    // Optionally fetch results even for failed session
+                    // this.fetchAndDisplayResults(sessionId);
                 }
                 // If still PROCESSING or PENDING, continue polling
                 
@@ -359,6 +363,13 @@
         },
         
         fetchAndDisplayResults: async function(sessionId) {
+            // Validate session ID
+            if (!sessionId) {
+                this.showMessage('Cannot fetch results: invalid session ID', 'error');
+                this.restoreAnalysisButtons();
+                return;
+            }
+            
             try {
                 const session = await this.getSession(sessionId);
                 
@@ -477,22 +488,18 @@
         mapCodeBlockTypeToSeverity: function(codeBlockType) {
             // Map backend code_block_type to UI severity levels
             const severityMap = {
-                'CRITICAL': 'CRITICAL',
-                'HIGH': 'HIGH',
-                'MEDIUM': 'MEDIUM',
-                'LOW': 'MEDIUM',
-                'INFO': 'MEDIUM'
+                'replaceable': 'CRITICAL',
+                'non_replaceable': 'MEDIUM',
+                'conditionally_replaceable': 'MEDIUM'
             };
             return severityMap[codeBlockType] || 'MEDIUM';
         },
         
         getFindingTitle: function(codeBlockType) {
             const titleMap = {
-                'CRITICAL': 'Critical Safety Issue',
-                'HIGH': 'High Risk Pattern',
-                'MEDIUM': 'Potential Issue',
-                'LOW': 'Code Improvement',
-                'INFO': 'Informational Finding'
+                'replaceable': 'Replaceable Safety Issue',
+                'non_replaceable': 'Non-Replaceable Pattern',
+                'conditionally_replaceable': 'Conditionally Replaceable'
             };
             return titleMap[codeBlockType] || 'Code Analysis Finding';
         },

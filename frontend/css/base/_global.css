@@ -215,8 +215,8 @@ img[loading="lazy"].loaded {
 
 /* Error states */
 .error {
-  border-color: var(--color-danger) !important;
-  color: var(--color-danger) !important;
+  border-color: var(--color-danger);
+  color: var(--color-danger);
 }
 
 .error-message {
@@ -227,8 +227,8 @@ img[loading="lazy"].loaded {
 
 /* Success states */
 .success {
-  border-color: var(--color-success) !important;
-  color: var(--color-success) !important;
+  border-color: var(--color-success);
+  color: var(--color-success);
 }
 
 .success-message {
@@ -239,8 +239,8 @@ img[loading="lazy"].loaded {
 
 /* Warning states */
 .warning {
-  border-color: var(--color-warning) !important;
-  color: var(--color-warning) !important;
+  border-color: var(--color-warning);
+  color: var(--color-warning);
 }
 
 .warning-message {
