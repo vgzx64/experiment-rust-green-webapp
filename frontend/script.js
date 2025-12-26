@@ -373,8 +373,8 @@
             try {
                 const session = await this.getSession(sessionId);
                 
-                // Update results summary
-                this.updateResultsSummary(session.analyses.length);
+                // Update results summary with actual analyses
+                this.updateResultsSummary(session.analyses);
                 
                 // Display findings
                 this.displayFindings(session.analyses);
@@ -420,20 +420,23 @@
         },
         
         createFindingCard: function(analysis, index) {
-            // Determine severity based on code_block_type
-            const severity = this.mapCodeBlockTypeToSeverity(analysis.code_block_type);
-            const severityClass = severity.toLowerCase();
+            // Use code_block_type directly instead of severity
+            const codeBlockType = analysis.code_block_type;
+            const typeClass = codeBlockType.replace('_', '-'); // replaceable, non-replaceable, conditionally-replaceable
+            
+            // Format display text for code block type
+            const typeDisplayText = this.formatCodeBlockType(codeBlockType);
             
             // Extract code snippets
             const unsafeCode = analysis.code_block?.raw_code || 'No code available';
             const safeCode = analysis.suggested_replacement?.raw_code || null;
             
             const card = document.createElement('div');
-            card.className = `finding-card ${severityClass}`;
+            card.className = `finding-card ${typeClass}`;
             card.innerHTML = `
                 <div class="finding-header">
-                    <span class="finding-badge ${severityClass}">${severity}</span>
-                    <span class="finding-title">${this.getFindingTitle(analysis.code_block_type)}</span>
+                    <span class="finding-badge ${typeClass}">${typeDisplayText}</span>
+                    <span class="finding-title">${this.getFindingTitle(codeBlockType)}</span>
                     <span class="finding-confidence">${this.getConfidenceText(analysis)}</span>
                 </div>
                 
@@ -485,14 +488,14 @@
             return card;
         },
         
-        mapCodeBlockTypeToSeverity: function(codeBlockType) {
-            // Map backend code_block_type to UI severity levels
-            const severityMap = {
-                'replaceable': 'CRITICAL',
-                'non_replaceable': 'MEDIUM',
-                'conditionally_replaceable': 'MEDIUM'
+        formatCodeBlockType: function(codeBlockType) {
+            // Format code block type for display
+            const formatMap = {
+                'replaceable': 'Replaceable',
+                'non_replaceable': 'Non-Replaceable',
+                'conditionally_replaceable': 'Conditionally Replaceable'
             };
-            return severityMap[codeBlockType] || 'MEDIUM';
+            return formatMap[codeBlockType] || codeBlockType;
         },
         
         getFindingTitle: function(codeBlockType) {
@@ -629,37 +632,54 @@
         },
         
         // ==================== Results Summary ====================
-        updateResultsSummary: function(totalIssues) {
+        updateResultsSummary: function(analyses) {
             const summaryItems = document.querySelectorAll('.summary-item');
             if (summaryItems.length >= 4) {
+                // Calculate counts by code block type
+                let replaceableCount = 0;
+                let nonReplaceableCount = 0;
+                let conditionallyReplaceableCount = 0;
+                
+                analyses.forEach(analysis => {
+                    switch (analysis.code_block_type) {
+                        case 'replaceable':
+                            replaceableCount++;
+                            break;
+                        case 'non_replaceable':
+                            nonReplaceableCount++;
+                            break;
+                        case 'conditionally_replaceable':
+                            conditionallyReplaceableCount++;
+                            break;
+                    }
+                });
+                
+                const totalIssues = analyses.length;
+                
                 // Update total issues
                 const totalElement = summaryItems[0].querySelector('.summary-value');
                 if (totalElement) {
                     totalElement.textContent = totalIssues;
                 }
                 
-                // Simulate distribution of issues
-                const critical = Math.min(Math.floor(totalIssues * 0.4), totalIssues);
-                const high = Math.min(Math.floor(totalIssues * 0.3), totalIssues - critical);
-                const medium = Math.max(0, totalIssues - critical - high);
-                
-                // Update critical
-                const criticalElement = summaryItems[1].querySelector('.summary-value');
-                if (criticalElement) {
-                    criticalElement.textContent = critical;
-                    criticalElement.parentElement.classList.toggle('critical', critical > 0);
+                // Update replaceable count
+                const replaceableElement = summaryItems[1].querySelector('.summary-value');
+                if (replaceableElement) {
+                    replaceableElement.textContent = replaceableCount;
+                    // Add styling class if needed
+                    replaceableElement.parentElement.classList.toggle('has-issues', replaceableCount > 0);
                 }
                 
-                // Update high
-                const highElement = summaryItems[2].querySelector('.summary-value');
-                if (highElement) {
-                    highElement.textContent = high;
+                // Update non-replaceable count
+                const nonReplaceableElement = summaryItems[2].querySelector('.summary-value');
+                if (nonReplaceableElement) {
+                    nonReplaceableElement.textContent = nonReplaceableCount;
                 }
                 
-                // Update medium
-                const mediumElement = summaryItems[3].querySelector('.summary-value');
-                if (mediumElement) {
-                    mediumElement.textContent = medium;
+                // Update conditionally replaceable count
+                const conditionallyReplaceableElement = summaryItems[3].querySelector('.summary-value');
+                if (conditionallyReplaceableElement) {
+                    conditionallyReplaceableElement.textContent = conditionallyReplaceableCount;
                 }
             }
         },

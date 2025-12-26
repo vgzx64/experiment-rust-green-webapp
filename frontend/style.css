@@ -415,8 +415,16 @@ body {
     color: var(--text);
 }
 
-.summary-item.critical .summary-value {
+.summary-item.replaceable .summary-value {
     color: var(--danger);
+}
+
+.summary-item.non-replaceable .summary-value {
+    color: var(--warning);
+}
+
+.summary-item.conditionally-replaceable .summary-value {
+    color: var(--info);
 }
 
 .summary-label {
@@ -439,8 +447,16 @@ body {
     background-color: var(--bg);
 }
 
-.finding-card.critical {
+.finding-card.replaceable {
     border-left: 4px solid var(--danger);
+}
+
+.finding-card.non-replaceable {
+    border-left: 4px solid var(--warning);
+}
+
+.finding-card.conditionally-replaceable {
+    border-left: 4px solid var(--info);
 }
 
 .finding-header {
@@ -461,9 +477,19 @@ body {
     letter-spacing: 0.5px;
 }
 
-.finding-badge.critical {
+.finding-badge.replaceable {
     background-color: rgba(229, 62, 62, 0.1);
     color: var(--danger);
+}
+
+.finding-badge.non-replaceable {
+    background-color: rgba(214, 158, 46, 0.1);
+    color: var(--warning);
+}
+
+.finding-badge.conditionally-replaceable {
+    background-color: rgba(49, 130, 206, 0.1);
+    color: var(--info);
 }
 
 .finding-title {

@@ -97,21 +97,21 @@ fn main() {
 
                 <!-- Results Summary -->
                 <div class="results-summary">
-                    <div class="summary-item">
+                    <div class="summary-item total">
                         <div class="summary-value">1</div>
                         <div class="summary-label">Total Issues</div>
                     </div>
-                    <div class="summary-item critical">
+                    <div class="summary-item replaceable">
                         <div class="summary-value">1</div>
-                        <div class="summary-label">Critical</div>
+                        <div class="summary-label">Replaceable</div>
                     </div>
-                    <div class="summary-item">
+                    <div class="summary-item non-replaceable">
                         <div class="summary-value">0</div>
-                        <div class="summary-label">High</div>
+                        <div class="summary-label">Non-Replaceable</div>
                     </div>
-                    <div class="summary-item">
+                    <div class="summary-item conditionally-replaceable">
                         <div class="summary-value">0</div>
-                        <div class="summary-label">Medium</div>
+                        <div class="summary-label">Conditionally Replaceable</div>
                     </div>
                 </div>
 
@@ -132,9 +132,9 @@ fn main() {
 
                 <!-- Findings List -->
                 <div class="findings-container">
-                    <div class="finding-card critical">
+                    <div class="finding-card replaceable">
                         <div class="finding-header">
-                            <span class="finding-badge critical">CRITICAL</span>
+                            <span class="finding-badge replaceable">Replaceable</span>
                             <span class="finding-title">Raw Pointer Dereference</span>
                             <span class="finding-confidence">92% confidence</span>
                         </div>
