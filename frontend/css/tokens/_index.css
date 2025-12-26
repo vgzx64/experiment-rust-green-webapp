@@ -1,0 +1,8 @@
+/* Design Tokens Index
+ * Imports all design token files
+ */
+
+@import './_colors.css';
+@import './_spacing.css';
+@import './_typography.css';
+@import './_borders.css';

@@ -1,0 +1,30 @@
+/* Main CSS Entry Point for rust-green
+ * Imports all CSS modules in the correct order
+ */
+
+/* 1. Design Tokens - Foundation variables */
+@import './tokens/_index.css';
+
+/* 2. Base Styles - Resets, typography, global */
+@import './base/_reset.css';
+@import './base/_typography.css';
+@import './base/_global.css';
+
+/* 3. Utility Classes - Reusable atomic classes */
+@import './utilities/_index.css';
+
+/* 4. Layout Styles - Grid, flexbox, containers */
+@import './layouts/_index.css';
+
+/* 5. Component Styles - BEM components */
+@import './components/_index.css';
+
+/* Note: The utilities, layouts, and components index files
+ * will be created as we refactor the existing CSS.
+ * For now, we'll also include the original style.css
+ * to maintain functionality during the transition.
+ */
+
+/* Temporary: Include original styles during transition */
+/* This will be removed once all components are refactored */
+/* @import '../style-backup.css'; */

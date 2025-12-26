@@ -1,0 +1,98 @@
+/* Color Design Tokens for rust-green */
+
+:root {
+  /* Primary Colors */
+  --color-primary: #2e8555;
+  --color-primary-dark: #1e6b42;
+  --color-primary-light: #48bb78;
+  --color-primary-lighter: #9ae6b4;
+  --color-primary-lightest: #c6f6d5;
+  
+  /* Secondary Colors */
+  --color-secondary: #4a5568;
+  --color-secondary-dark: #2d3748;
+  --color-secondary-light: #718096;
+  --color-secondary-lighter: #a0aec0;
+  --color-secondary-lightest: #e2e8f0;
+  
+  /* Semantic Colors */
+  --color-danger: #e53e3e;
+  --color-danger-dark: #c53030;
+  --color-danger-light: #fc8181;
+  --color-danger-lighter: #fed7d7;
+  
+  --color-warning: #d69e2e;
+  --color-warning-dark: #b7791f;
+  --color-warning-light: #f6e05e;
+  --color-warning-lighter: #fefcbf;
+  
+  --color-success: #38a169;
+  --color-success-dark: #2f855a;
+  --color-success-light: #68d391;
+  --color-success-lighter: #c6f6d5;
+  
+  --color-info: #3182ce;
+  --color-info-dark: #2c5282;
+  --color-info-light: #63b3ed;
+  --color-info-lighter: #bee3f8;
+  
+  /* Neutral Colors */
+  --color-white: #ffffff;
+  --color-black: #000000;
+  
+  --color-surface: #ffffff;
+  --color-surface-alt: #f8fafc;
+  --color-surface-elevated: #ffffff;
+  
+  --color-background: #f8fafc;
+  --color-background-alt: #edf2f7;
+  
+  --color-border: #e2e8f0;
+  --color-border-light: #edf2f7;
+  --color-border-dark: #cbd5e0;
+  
+  /* Text Colors */
+  --color-text: #2d3748;
+  --color-text-light: #718096;
+  --color-text-lighter: #a0aec0;
+  --color-text-lightest: #cbd5e0;
+  
+  --color-text-on-primary: #ffffff;
+  --color-text-on-dark: #ffffff;
+  --color-text-on-light: #2d3748;
+  
+  /* Code Colors */
+  --color-code-background: #1a202c;
+  --color-code-text: #e2e8f0;
+  --color-code-comment: #a0aec0;
+  --color-code-keyword: #f687b3;
+  --color-code-string: #68d391;
+  --color-code-number: #f6ad55;
+  --color-code-function: #63b3ed;
+}
+
+/* Color Utility Classes */
+.u-bg-primary { background-color: var(--color-primary); }
+.u-bg-primary-dark { background-color: var(--color-primary-dark); }
+.u-bg-primary-light { background-color: var(--color-primary-light); }
+
+.u-bg-danger { background-color: var(--color-danger); }
+.u-bg-warning { background-color: var(--color-warning); }
+.u-bg-success { background-color: var(--color-success); }
+.u-bg-info { background-color: var(--color-info); }
+
+.u-bg-surface { background-color: var(--color-surface); }
+.u-bg-background { background-color: var(--color-background); }
+
+.u-text-primary { color: var(--color-primary); }
+.u-text-danger { color: var(--color-danger); }
+.u-text-warning { color: var(--color-warning); }
+.u-text-success { color: var(--color-success); }
+.u-text-info { color: var(--color-info); }
+
+.u-text-on-primary { color: var(--color-text-on-primary); }
+.u-text-on-dark { color: var(--color-text-on-dark); }
+
+.u-border { border-color: var(--color-border); }
+.u-border-light { border-color: var(--color-border-light); }
+.u-border-dark { border-color: var(--color-border-dark); }

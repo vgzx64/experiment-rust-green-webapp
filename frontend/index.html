@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>rust-green | Rust Code Safety Analyzer</title>
+    <!-- New CSS Architecture (BEM + Utility-First) -->
+    <link rel="stylesheet" href="css/main.css">
+    <!-- Original CSS for backward compatibility during transition -->
+    <link rel="stylesheet" href="style.css">
+    <!-- External dependencies -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Simple Header -->
+    <header class="simple-header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>rust-green</span>
+                <span class="tagline">Rust Code Safety Analyzer</span>
+            </div>
+            <nav class="simple-nav">
+                <a href="#" class="nav-item active">Analyze</a>
+                <a href="#" class="nav-item">Sessions</a>
+                <a href="#" class="nav-item">Research</a>
+                <a href="#" class="nav-item">Settings</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="simple-main">
+        <!-- Page Title -->
+        <div class="page-title">
+            <h2>Analyze Rust Code for Safety Issues</h2>
+            <p>Paste your Rust code below to detect unsafe patterns and get AI-powered suggestions</p>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="content-grid">
+            <!-- Left Column: Code Input -->
+            <div class="input-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-code"></i> Rust Code Input</h3>
+                    <div class="input-options">
+                        <button class="option-btn active">Paste</button>
+                        <button class="option-btn">Upload</button>
+                        <button class="option-btn">Git</button>
+                    </div>
+                </div>
+                
+                <div class="code-input-container">
+                    <textarea class="code-input" id="rust-code" placeholder="Paste your Rust code here...">// Example unsafe Rust code
+fn main() {
+    let raw_ptr: *const i32 = &10 as *const i32;
+    
+    unsafe {
+        // Unsafe dereference of raw pointer
+        let value = *raw_ptr;
+        println!("Value: {}", value);
+    }
+}</textarea>
+                    <div class="input-info">
+                        <span><i class="fas fa-ruler-combined"></i> 8 lines</span>
+                        <span><i class="fas fa-exclamation-triangle"></i> 1 unsafe block</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="primary-btn" id="analyze-btn">
+                        <i class="fas fa-play"></i> Start Analysis
+                    </button>
+                    <button class="secondary-btn" id="quick-scan">
+                        <i class="fas fa-bolt"></i> Quick Scan
+                    </button>
+                    <button class="text-btn" id="clear-btn">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column: Results -->
+            <div class="results-section">
+                <div class="section-header">
+                    <h3><i class="fas fa-search"></i> Analysis Results</h3>
+                    <div class="results-filter">
+                        <select>
+                            <option>All Findings</option>
+                            <option>Critical Only</option>
+                            <option>With Fixes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Results Summary -->
+                <div class="results-summary">
+                    <div class="summary-item">
+                        <div class="summary-value">1</div>
+                        <div class="summary-label">Total Issues</div>
+                    </div>
+                    <div class="summary-item critical">
+                        <div class="summary-value">1</div>
+                        <div class="summary-label">Critical</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">0</div>
+                        <div class="summary-label">High</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">0</div>
+                        <div class="summary-label">Medium</div>
+                    </div>
+                </div>
+
+                <!-- Progress Display (hidden by default) -->
+                <div class="progress-display" id="progress-display" style="display: none;">
+                    <div class="progress-header">
+                        <h4><i class="fas fa-sync-alt fa-spin"></i> Analysis in Progress</h4>
+                        <span class="analysis-status">Status: PENDING (0%)</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" style="width: 0%">0%</div>
+                    </div>
+                    <div class="progress-details">
+                        <span><i class="fas fa-clock"></i> Session ID: <span id="session-id">-</span></span>
+                        <span><i class="fas fa-hourglass-half"></i> Time elapsed: <span id="time-elapsed">0s</span></span>
+                    </div>
+                </div>
+
+                <!-- Findings List -->
+                <div class="findings-container">
+                    <div class="finding-card critical">
+                        <div class="finding-header">
+                            <span class="finding-badge critical">CRITICAL</span>
+                            <span class="finding-title">Raw Pointer Dereference</span>
+                            <span class="finding-confidence">92% confidence</span>
+                        </div>
+                        
+                        <div class="finding-content">
+                            <div class="code-block">
+                                <div class="code-label">Unsafe Code:</div>
+                                <pre><code>unsafe {
+    let value = *raw_ptr;
+}</code></pre>
+                            </div>
+                            
+                            <div class="code-block safe">
+                                <div class="code-label">Safe Alternative:</div>
+                                <pre><code>let value = &10;
+println!("Value: {}", value);</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="finding-actions">
+                            <button class="action-btn apply">
+                                <i class="fas fa-check"></i> Apply Fix
+                            </button>
+                            <button class="action-btn false-positive">
+                                <i class="fas fa-times"></i> False Positive
+                            </button>
+                            <button class="action-btn note">
+                                <i class="fas fa-comment"></i> Add Note
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Status Message -->
+                    <div class="status-message">
+                        <i class="fas fa-info-circle"></i>
+                        <p>Analysis complete. 1 safety issue found. Review suggestions above.</p>
+                    </div>
+                </div>
+
+                <!-- Recent Sessions -->
+                <div class="sessions-preview">
+                    <h4><i class="fas fa-history"></i> Recent Sessions</h4>
+                    <div class="session-list">
+                        <div class="session-item">
+                            <span class="session-name">actix-web audit</span>
+                            <span class="session-status completed">Completed</span>
+                        </div>
+                        <div class="session-item">
+                            <span class="session-name">tokio runtime</span>
+                            <span class="session-status in-progress">In Progress</span>
+                        </div>
+                        <div class="session-item">
+                            <span class="session-name">research: FFI</span>
+                            <span class="session-status queued">Queued</span>
+                        </div>
+                    </div>
+                    <button class="view-all-btn">View All Sessions →</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Simple Footer -->
+    <footer class="simple-footer">
+        <p>rust-green v0.1 • AI-powered Rust safety analysis • <a href="#">Documentation</a> • <a href="#">GitHub</a></p>
+        <p class="disclaimer">Always review AI suggestions before deploying code changes.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

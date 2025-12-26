@@ -1,0 +1,224 @@
+/* Border & Shadow Design Tokens for rust-green */
+
+:root {
+  /* Border Radius */
+  --radius-none: 0;
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-base: 0.5rem;  /* 8px */
+  --radius-md: 0.75rem;   /* 12px */
+  --radius-lg: 1rem;      /* 16px */
+  --radius-xl: 1.5rem;    /* 24px */
+  --radius-2xl: 2rem;     /* 32px */
+  --radius-full: 9999px;
+  
+  /* Border Width */
+  --border-width-none: 0;
+  --border-width-thin: 1px;
+  --border-width-base: 2px;
+  --border-width-thick: 4px;
+  
+  /* Border Colors (linked to color tokens) */
+  --border-color-default: var(--color-border);
+  --border-color-light: var(--color-border-light);
+  --border-color-dark: var(--color-border-dark);
+  --border-color-primary: var(--color-primary);
+  --border-color-danger: var(--color-danger);
+  --border-color-warning: var(--color-warning);
+  --border-color-success: var(--color-success);
+  --border-color-info: var(--color-info);
+  
+  /* Box Shadows */
+  --shadow-none: 0 0 #0000;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-base: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+  
+  /* Focus Rings */
+  --ring-width: 3px;
+  --ring-color: rgba(46, 133, 85, 0.3); /* primary with opacity */
+  --ring-offset-width: 2px;
+  --ring-offset-color: var(--color-surface);
+  
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slower: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Border Radius Utilities */
+.u-rounded-none { border-radius: var(--radius-none); }
+.u-rounded-sm { border-radius: var(--radius-sm); }
+.u-rounded { border-radius: var(--radius-base); }
+.u-rounded-md { border-radius: var(--radius-md); }
+.u-rounded-lg { border-radius: var(--radius-lg); }
+.u-rounded-xl { border-radius: var(--radius-xl); }
+.u-rounded-2xl { border-radius: var(--radius-2xl); }
+.u-rounded-full { border-radius: var(--radius-full); }
+
+/* Individual corner radius */
+.u-rounded-t-none { border-top-left-radius: var(--radius-none); border-top-right-radius: var(--radius-none); }
+.u-rounded-r-none { border-top-right-radius: var(--radius-none); border-bottom-right-radius: var(--radius-none); }
+.u-rounded-b-none { border-bottom-right-radius: var(--radius-none); border-bottom-left-radius: var(--radius-none); }
+.u-rounded-l-none { border-top-left-radius: var(--radius-none); border-bottom-left-radius: var(--radius-none); }
+
+.u-rounded-t-sm { border-top-left-radius: var(--radius-sm); border-top-right-radius: var(--radius-sm); }
+.u-rounded-r-sm { border-top-right-radius: var(--radius-sm); border-bottom-right-radius: var(--radius-sm); }
+.u-rounded-b-sm { border-bottom-right-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm); }
+.u-rounded-l-sm { border-top-left-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm); }
+
+.u-rounded-t { border-top-left-radius: var(--radius-base); border-top-right-radius: var(--radius-base); }
+.u-rounded-r { border-top-right-radius: var(--radius-base); border-bottom-right-radius: var(--radius-base); }
+.u-rounded-b { border-bottom-right-radius: var(--radius-base); border-bottom-left-radius: var(--radius-base); }
+.u-rounded-l { border-top-left-radius: var(--radius-base); border-bottom-left-radius: var(--radius-base); }
+
+.u-rounded-t-lg { border-top-left-radius: var(--radius-lg); border-top-right-radius: var(--radius-lg); }
+.u-rounded-r-lg { border-top-right-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg); }
+.u-rounded-b-lg { border-bottom-right-radius: var(--radius-lg); border-bottom-left-radius: var(--radius-lg); }
+.u-rounded-l-lg { border-top-left-radius: var(--radius-lg); border-bottom-left-radius: var(--radius-lg); }
+
+/* Border Width Utilities */
+.u-border-0 { border-width: var(--border-width-none); }
+.u-border { border-width: var(--border-width-thin); }
+.u-border-2 { border-width: var(--border-width-base); }
+.u-border-4 { border-width: var(--border-width-thick); }
+
+/* Individual side border width */
+.u-border-t-0 { border-top-width: var(--border-width-none); }
+.u-border-r-0 { border-right-width: var(--border-width-none); }
+.u-border-b-0 { border-bottom-width: var(--border-width-none); }
+.u-border-l-0 { border-left-width: var(--border-width-none); }
+
+.u-border-t { border-top-width: var(--border-width-thin); }
+.u-border-r { border-right-width: var(--border-width-thin); }
+.u-border-b { border-bottom-width: var(--border-width-thin); }
+.u-border-l { border-left-width: var(--border-width-thin); }
+
+.u-border-t-2 { border-top-width: var(--border-width-base); }
+.u-border-r-2 { border-right-width: var(--border-width-base); }
+.u-border-b-2 { border-bottom-width: var(--border-width-base); }
+.u-border-l-2 { border-left-width: var(--border-width-base); }
+
+/* Border Color Utilities */
+.u-border-default { border-color: var(--border-color-default); }
+.u-border-light { border-color: var(--border-color-light); }
+.u-border-dark { border-color: var(--border-color-dark); }
+.u-border-primary { border-color: var(--border-color-primary); }
+.u-border-danger { border-color: var(--border-color-danger); }
+.u-border-warning { border-color: var(--border-color-warning); }
+.u-border-success { border-color: var(--border-color-success); }
+.u-border-info { border-color: var(--border-color-info); }
+
+/* Border Style Utilities */
+.u-border-solid { border-style: solid; }
+.u-border-dashed { border-style: dashed; }
+.u-border-dotted { border-style: dotted; }
+.u-border-double { border-style: double; }
+.u-border-none { border-style: none; }
+
+/* Box Shadow Utilities */
+.u-shadow-none { box-shadow: var(--shadow-none); }
+.u-shadow-xs { box-shadow: var(--shadow-xs); }
+.u-shadow-sm { box-shadow: var(--shadow-sm); }
+.u-shadow { box-shadow: var(--shadow-base); }
+.u-shadow-md { box-shadow: var(--shadow-md); }
+.u-shadow-lg { box-shadow: var(--shadow-lg); }
+.u-shadow-xl { box-shadow: var(--shadow-xl); }
+.u-shadow-2xl { box-shadow: var(--shadow-2xl); }
+.u-shadow-inner { box-shadow: var(--shadow-inner); }
+
+/* Focus Ring Utilities */
+.u-ring-0 { --ring-width: 0px; }
+.u-ring-1 { --ring-width: 1px; }
+.u-ring-2 { --ring-width: 2px; }
+.u-ring { --ring-width: 3px; }
+.u-ring-4 { --ring-width: 4px; }
+.u-ring-8 { --ring-width: 8px; }
+
+.u-ring-primary { --ring-color: var(--border-color-primary); }
+.u-ring-danger { --ring-color: var(--border-color-danger); }
+.u-ring-warning { --ring-color: var(--border-color-warning); }
+.u-ring-success { --ring-color: var(--border-color-success); }
+.u-ring-info { --ring-color: var(--border-color-info); }
+
+.u-ring-offset-0 { --ring-offset-width: 0px; }
+.u-ring-offset-1 { --ring-offset-width: 1px; }
+.u-ring-offset-2 { --ring-offset-width: 2px; }
+.u-ring-offset-4 { --ring-offset-width: 4px; }
+.u-ring-offset-8 { --ring-offset-width: 8px; }
+
+/* Apply ring styles */
+.u-ring {
+  box-shadow: 
+    0 0 0 var(--ring-width) var(--ring-color),
+    0 0 0 calc(var(--ring-width) + var(--ring-offset-width)) var(--ring-offset-color);
+}
+
+/* Outline Utilities */
+.u-outline-none { outline: 2px solid transparent; outline-offset: 2px; }
+.u-outline { outline-style: solid; }
+.u-outline-dashed { outline-style: dashed; }
+.u-outline-dotted { outline-style: dotted; }
+.u-outline-double { outline-style: double; }
+
+/* Transition Utilities */
+.u-transition-none { transition-property: none; }
+.u-transition-all { transition-property: all; }
+.u-transition { transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow, transform; }
+.u-transition-colors { transition-property: background-color, border-color, color, fill, stroke; }
+.u-transition-opacity { transition-property: opacity; }
+.u-transition-shadow { transition-property: box-shadow; }
+.u-transition-transform { transition-property: transform; }
+
+.u-duration-75 { transition-duration: 75ms; }
+.u-duration-100 { transition-duration: 100ms; }
+.u-duration-150 { transition-duration: 150ms; }
+.u-duration-200 { transition-duration: 200ms; }
+.u-duration-300 { transition-duration: 300ms; }
+.u-duration-500 { transition-duration: 500ms; }
+.u-duration-700 { transition-duration: 700ms; }
+.u-duration-1000 { transition-duration: 1000ms; }
+
+.u-ease-linear { transition-timing-function: linear; }
+.u-ease-in { transition-timing-function: cubic-bezier(0.4, 0, 1, 1); }
+.u-ease-out { transition-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+.u-ease-in-out { transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* Transform Utilities */
+.u-transform { transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)); }
+.u-transform-gpu { transform: translate3d(var(--tw-translate-x), var(--tw-translate-y), 0) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)); }
+.u-transform-none { transform: none; }
+
+/* Common border combinations */
+.u-card-border {
+  border: var(--border-width-thin) solid var(--border-color-default);
+  border-radius: var(--radius-base);
+}
+
+.u-input-border {
+  border: var(--border-width-thin) solid var(--border-color-default);
+  border-radius: var(--radius-base);
+  transition: border-color var(--transition-fast);
+}
+
+.u-input-border:focus {
+  border-color: var(--border-color-primary);
+  box-shadow: 0 0 0 var(--ring-width) var(--ring-color);
+  outline: none;
+}
+
+.u-button-border {
+  border: var(--border-width-thin) solid transparent;
+  border-radius: var(--radius-base);
+  transition: all var(--transition-fast);
+}
+
+.u-button-border:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
