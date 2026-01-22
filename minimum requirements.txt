@@ -1,15 +1,15 @@
 Minimum Requirements (Must-Have)
 As part of the assignment, the student must:
+
 1. Implement a utility or a web application that accepts a fragment of source code (as text
-input or as a file).
+input or as a file). (DONE0
 
 1. The code may be written by the student or taken from an open repository.
 2. ❗ The use of LLMs to generate the initial vulnerable code is strictly prohibited.
 3. ❗ The analyzed code must not be compiled or executed — only static analysis
-
 of the text is allowed.
 
-2. Implement LLM-based code analysis, including:
+2. Implement LLM-based code analysis, including: (DONE)
 
 1. identification of the vulnerability;
 2. mapping to the corresponding CWE and OWASP Top 10 categories;

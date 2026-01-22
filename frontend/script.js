@@ -429,7 +429,17 @@
             
             // Extract code snippets
             const unsafeCode = analysis.code_block?.raw_code || 'No code available';
-            const safeCode = analysis.suggested_replacement?.raw_code || null;
+            const safeCode = analysis.suggested_replacement || null;
+            
+            // Extract security metadata
+            const cweId = analysis.cwe_id;
+            const owaspCategory = analysis.owasp_category;
+            const riskLevel = analysis.risk_level;
+            const confidenceScore = analysis.confidence_score;
+            const vulnerabilityDescription = analysis.vulnerability_description;
+            const exploitationScenario = analysis.exploitation_scenario;
+            const remediationExplanation = analysis.remediation_explanation;
+            const verificationResult = analysis.verification_result;
             
             const card = document.createElement('div');
             card.className = `finding-card ${typeClass}`;
@@ -440,16 +450,58 @@
                     <span class="finding-confidence">${this.getConfidenceText(analysis)}</span>
                 </div>
                 
+                <!-- Security Metadata -->
+                <div class="security-metadata">
+                    ${cweId ? `<span class="security-badge cwe"><i class="fas fa-bug"></i> ${cweId}</span>` : ''}
+                    ${owaspCategory ? `<span class="security-badge owasp"><i class="fas fa-shield-alt"></i> ${owaspCategory}</span>` : ''}
+                    ${riskLevel ? `<span class="security-badge risk-${riskLevel.toLowerCase()}"><i class="fas fa-exclamation-triangle"></i> ${riskLevel.toUpperCase()}</span>` : ''}
+                    ${confidenceScore ? `<span class="security-badge confidence"><i class="fas fa-chart-line"></i> ${Math.round(confidenceScore * 100)}% confidence</span>` : ''}
+                </div>
+                
                 <div class="finding-content">
+                    <!-- Vulnerability Description -->
+                    ${vulnerabilityDescription ? `
+                    <div class="description-section">
+                        <div class="section-label"><i class="fas fa-info-circle"></i> Vulnerability Description</div>
+                        <div class="section-content">${this.escapeHtml(vulnerabilityDescription)}</div>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Exploitation Scenario -->
+                    ${exploitationScenario ? `
+                    <div class="description-section">
+                        <div class="section-label"><i class="fas fa-bolt"></i> Exploitation Scenario</div>
+                        <div class="section-content">${this.escapeHtml(exploitationScenario)}</div>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Code Blocks -->
                     <div class="code-block">
-                        <div class="code-label">Unsafe Code:</div>
+                        <div class="code-label"><i class="fas fa-code"></i> Unsafe Code (Lines ${analysis.code_block?.line_start || 1}-${analysis.code_block?.line_end || 1})</div>
                         <pre><code>${this.escapeHtml(unsafeCode)}</code></pre>
                     </div>
                     
+                    <!-- Safe Alternative -->
                     ${safeCode ? `
                     <div class="code-block safe">
-                        <div class="code-label">Safe Alternative:</div>
+                        <div class="code-label"><i class="fas fa-check-circle"></i> Safe Alternative</div>
                         <pre><code>${this.escapeHtml(safeCode)}</code></pre>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Remediation Explanation -->
+                    ${remediationExplanation ? `
+                    <div class="description-section">
+                        <div class="section-label"><i class="fas fa-wrench"></i> Remediation Explanation</div>
+                        <div class="section-content">${this.escapeHtml(remediationExplanation)}</div>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Verification Result -->
+                    ${verificationResult ? `
+                    <div class="description-section verification">
+                        <div class="section-label"><i class="fas fa-check-double"></i> Verification Result</div>
+                        <div class="section-content">${this.escapeHtml(verificationResult)}</div>
                     </div>
                     ` : ''}
                 </div>
@@ -465,6 +517,9 @@
                     </button>
                     <button class="action-btn note" data-analysis-id="${analysis.id}">
                         <i class="fas fa-comment"></i> Add Note
+                    </button>
+                    <button class="action-btn details" data-analysis-id="${analysis.id}">
+                        <i class="fas fa-ellipsis-h"></i> More Details
                     </button>
                 </div>
             `;
@@ -483,6 +538,11 @@
             const noteBtn = card.querySelector('.action-btn.note');
             if (noteBtn) {
                 noteBtn.addEventListener('click', () => this.addNoteToAnalysis(analysis.id));
+            }
+            
+            const detailsBtn = card.querySelector('.action-btn.details');
+            if (detailsBtn) {
+                detailsBtn.addEventListener('click', () => this.showAnalysisDetails(analysis));
             }
             
             return card;
@@ -526,6 +586,20 @@
             if (note) {
                 this.showMessage(`Note added to analysis ${analysisId.substring(0, 8)}: "${note}"`, 'success');
             }
+        },
+        
+        showAnalysisDetails: function(analysis) {
+            const details = `
+Analysis ID: ${analysis.id}
+Code Block Type: ${analysis.code_block_type}
+CWE: ${analysis.cwe_id || 'N/A'}
+OWASP: ${analysis.owasp_category || 'N/A'}
+Risk Level: ${analysis.risk_level || 'N/A'}
+Confidence: ${analysis.confidence_score ? Math.round(analysis.confidence_score * 100) + '%' : 'N/A'}
+Created: ${analysis.created_at || 'N/A'}
+            `.trim();
+            
+            alert(`Analysis Details:\n\n${details}`);
         },
         
         escapeHtml: function(text) {

@@ -720,6 +720,178 @@ body {
     font-style: italic;
 }
 
+/* Security Metadata */
+.security-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--border);
+}
+
+.security-badge {
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.security-badge.cwe {
+    background-color: rgba(229, 62, 62, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(229, 62, 62, 0.2);
+}
+
+.security-badge.owasp {
+    background-color: rgba(49, 130, 206, 0.1);
+    color: var(--info);
+    border: 1px solid rgba(49, 130, 206, 0.2);
+}
+
+.security-badge.risk-low {
+    background-color: rgba(56, 161, 105, 0.1);
+    color: var(--success);
+    border: 1px solid rgba(56, 161, 105, 0.2);
+}
+
+.security-badge.risk-medium {
+    background-color: rgba(214, 158, 46, 0.1);
+    color: var(--warning);
+    border: 1px solid rgba(214, 158, 46, 0.2);
+}
+
+.security-badge.risk-high {
+    background-color: rgba(229, 62, 62, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(229, 62, 62, 0.2);
+}
+
+.security-badge.risk-critical {
+    background-color: rgba(123, 52, 30, 0.1);
+    color: #7b341e;
+    border: 1px solid rgba(123, 52, 30, 0.2);
+}
+
+.security-badge.confidence {
+    background-color: rgba(113, 128, 150, 0.1);
+    color: var(--secondary);
+    border: 1px solid rgba(113, 128, 150, 0.2);
+}
+
+/* Description Sections */
+.description-section {
+    background-color: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--space-sm);
+    margin-bottom: var(--space-sm);
+}
+
+.description-section.verification {
+    background-color: rgba(56, 161, 105, 0.05);
+    border-color: rgba(56, 161, 105, 0.2);
+}
+
+.section-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: var(--space-xs);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.section-content {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* More Details Button */
+.action-btn.details {
+    background-color: transparent;
+    color: var(--secondary);
+    border-color: var(--border);
+}
+
+.action-btn.details:hover {
+    background-color: var(--bg);
+    color: var(--text);
+}
+
+/* Progress Display */
+.progress-display {
+    background-color: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+}
+
+.progress-header h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.analysis-status {
+    font-size: 0.875rem;
+    color: var(--text-light);
+}
+
+.progress-bar-container {
+    height: 8px;
+    background-color: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: var(--space-sm);
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: var(--primary);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: 30px;
+    padding: 0 4px;
+}
+
+.progress-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    color: var(--text-light);
+}
+
+.progress-details span {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
 /* Utility Classes */
 .hidden {
     display: none !important;

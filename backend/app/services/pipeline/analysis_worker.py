@@ -24,7 +24,7 @@ class AnalysisWorker:
         self.file_storage = FileStorageService()
         
         # Initialize LLM service if enabled
-        self.use_llm = llm_config.use_llm
+        self.use_llm = llm_config.enabled
         self.llm_service = None
         if self.use_llm:
             try:
@@ -118,17 +118,9 @@ class AnalysisWorker:
                 # Generate analysis
                 logger.info(f"Generating analysis for session {session_id}")
                 
-                # Try LLM analysis if enabled, otherwise use mock
                 llm_available = bool(self.use_llm and self.llm_service)
                 if llm_available:
-                    logger.info("Using LLM for enhanced analysis")
-                    session.progress = 30  # type: ignore
-                    await db.commit()
-                    
                     analyzed_blocks = await self._generate_llm_analysis(code_to_analyze)
-                else:
-                    logger.info("Using mock analysis (LLM not available)")
-                    analyzed_blocks = self._generate_mock_analysis(code_to_analyze)
                 
                 session.progress = 90  # type: ignore
                 await db.commit()
@@ -161,44 +153,13 @@ class AnalysisWorker:
                 except Exception as update_error:
                     logger.error(f"Failed to update session error status: {update_error}")
     
-    def _generate_mock_analysis(self, code: str):
-        """Generate mock analysis with unsafe blocks marked as non_replaceable."""
-        import re
-        
-        # Find unsafe blocks with simple regex
-        unsafe_blocks = []
-        pattern = r"unsafe\s*\{[^}]*\}"
-        
-        for i, match in enumerate(re.finditer(pattern, code, re.DOTALL)):
-            block_code = match.group()
-            line_start = code[:match.start()].count('\n') + 1
-            line_end = line_start + block_code.count('\n')
-            
-            unsafe_blocks.append({
-                "raw_code": block_code,
-                "line_start": line_start,
-                "line_end": line_end,
-                "analysis_type": "non_replaceable",
-                "risk_level": None,
-                "cwe_id": None,
-                "owasp_category": None,
-                "confidence_score": None,
-                "vulnerability_description": "Unsafe block detected",
-                "exploitation_scenario": None,
-                "remediation_explanation": None,
-                "verification_result": None,
-                "llm_metadata": None,
-                "suggestions": []
-            })
-        
-        return unsafe_blocks
     
     async def _generate_llm_analysis(self, code: str):
         """Generate enhanced analysis using LLM."""
         try:
             if not self.llm_service:
                 logger.warning("LLM service not available, falling back to mock analysis")
-                return self._generate_mock_analysis(code)
+                return []
             
             logger.info("Starting LLM analysis pipeline")
             llm_results = await self.llm_service.complete_analysis_pipeline(code)
@@ -258,7 +219,7 @@ class AnalysisWorker:
         except Exception as e:
             logger.error(f"LLM analysis failed: {e}", exc_info=True)
             logger.info("Falling back to mock analysis")
-            return self._generate_mock_analysis(code)
+            return []
     
     async def _save_results(self, db: AsyncSession, session: Session, analyzed_blocks: list, use_llm: bool = False):
         """Save analysis results to database."""

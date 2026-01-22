@@ -1,23 +1,26 @@
-"""LLM configuration for Deepseek API."""
+import os
 from pydantic_settings import BaseSettings
 from typing import Optional
+from dotenv import load_dotenv, find_dotenv
+
+
+os.chdir("backend")
+print(os.getcwd())
+if not find_dotenv():
+    raise OSError(".env not found")
+load_dotenv()
 
 
 class LLMConfig(BaseSettings):
     """Configuration for LLM service."""
     
-    # Deepseek API configuration
-    deepseek_api_key: Optional[str] = None
-    deepseek_model: str = "deepseek-chat"
-    deepseek_base_url: str = "https://api.deepseek.com"
+    # Core LLM configuration
+    api_key: Optional[str] = os.environ['LLM_API_KEY'] or None
+    model: str = "deepseek-chat"
+    base_url: str = "https://api.deepseek.com"
     
-    # LLM feature toggle
-    use_llm: bool = False
-    
-    # OpenAI-compatible configuration (for Deepseek)
-    api_key: Optional[str] = None
-    model: Optional[str] = None
-    base_url: Optional[str] = None
+    # Feature toggle
+    enabled: bool = False
     
     # Generation parameters
     max_tokens: int = 4000
@@ -33,23 +36,15 @@ class LLMConfig(BaseSettings):
     
     class Config:
         env_file = ".env"
-        env_prefix = "DEEPSEEK_"
+        env_prefix = "LLM_"
     
     def __init__(self, **kwargs):
-        """Initialize with backward compatibility."""
+        """Initialize configuration."""
         super().__init__(**kwargs)
-        
-        # Set OpenAI-compatible fields from Deepseek fields
-        if not self.api_key:
-            self.api_key = self.deepseek_api_key
-        if not self.model:
-            self.model = self.deepseek_model
-        if not self.base_url:
-            self.base_url = self.deepseek_base_url
         
         # If API key is not set, disable LLM
         if not self.api_key:
-            self.use_llm = False
+            self.enabled = False
 
 
 # Global configuration instance
