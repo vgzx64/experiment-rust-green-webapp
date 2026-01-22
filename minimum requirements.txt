@@ -1,0 +1,42 @@
+Minimum Requirements (Must-Have)
+As part of the assignment, the student must:
+1. Implement a utility or a web application that accepts a fragment of source code (as text
+input or as a file).
+
+1. The code may be written by the student or taken from an open repository.
+2. ❗ The use of LLMs to generate the initial vulnerable code is strictly prohibited.
+3. ❗ The analyzed code must not be compiled or executed — only static analysis
+
+of the text is allowed.
+
+2. Implement LLM-based code analysis, including:
+
+1. identification of the vulnerability;
+2. mapping to the corresponding CWE and OWASP Top 10 categories;
+3. a textual explanation of the vulnerability and a possible exploitation scenario.
+
+3. Implement the LLM-based remediation stage, including:
+
+1. generation of a fixed version of the code or a patch/diff;
+2. explanation of the applied changes.
+
+4. Implement the re-check stage using LLM:
+
+1. analysis of the fixed code;
+2. confirmation that the vulnerability has been eliminated;
+3. verification that no new issues have been introduced.
+
+5. Generate a report that includes:
+
+1. description of the original problem;
+2. results of the LLM-based analysis;
+3. the fixed code and explanation of the changes;
+4. results of the re-check stage;
+5. conclusions about the effectiveness and limitations of using LLMs.
+
+Bonus
+Bonus points may be awarded if:
+1. a static analysis tool (e.g., Semgrep, Bandit) is integrated as a pre-check stage before the
+LLM analysis;
+2. the tool identifies and reports the exact lines of code where the vulnerability is located;
+3. a risk level assessment is implemented (e.g., High / Medium / Low).

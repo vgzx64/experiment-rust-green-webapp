@@ -4,8 +4,7 @@ from typing import List
 from datetime import datetime
 
 from app.database import get_db
-from app.models.session import Session
-from app.models.code_block import CodeBlock
+from app.models.session import SessionStatus as ModelSessionStatus
 from app.models.analysis import Analysis
 from app.api.dto import (
     CreateSessionInput,
@@ -13,7 +12,7 @@ from app.api.dto import (
     GetSessionOutput,
     UpdateSessionInput,
     SessionStatusResponse,
-    SessionStatus,
+    SessionStatus as DTOSessionStatus,
     CodeBlockType,
     AnalysisDetail,
     CodeBlockBase,
@@ -59,18 +58,27 @@ async def create_session(
         queue = get_analysis_queue()
         await queue.put(session.id)
         
-        # Update session status to processing (not queued - we use PENDING/PROCESSING)
-        session.status = SessionStatus.PROCESSING
-        await db.commit()
+        # Use SQLAlchemy inspect to get actual attribute values with proper typing
+        from sqlalchemy import inspect
+        insp = inspect(session)
+        
+        # Get attribute values using inspect which returns the actual Python values
+        session_id = insp.attrs.id.value
+        status_value = insp.attrs.status.value.value  # status is an enum, need .value
+        progress_value = insp.attrs.progress.value
+        created_at_value = insp.attrs.created_at.value
+        updated_at_value = insp.attrs.updated_at.value
+        completed_at_value = insp.attrs.completed_at.value
+        error_message_value = insp.attrs.error_message.value
         
         return CreateSessionOutput(
-            id=session.id,
-            status=session.status,
-            progress=session.progress,
-            created_at=session.created_at,
-            updated_at=session.updated_at,
-            completed_at=session.completed_at,
-            error_message=session.error_message
+            id=session_id,
+            status=status_value,
+            progress=progress_value,
+            created_at=created_at_value,
+            updated_at=updated_at_value,
+            completed_at=completed_at_value,
+            error_message=error_message_value
         )
         
     except ValueError as e:
@@ -129,52 +137,88 @@ async def get_session(
     db_analyses = result.scalars().all()
     
     for analysis in db_analyses:
+        # Use SQLAlchemy inspect to get actual attribute values with proper typing
+        from sqlalchemy import inspect
+        analysis_insp = inspect(analysis)
+        
         # Build CodeBlockBase from database CodeBlock
-        code_block_dto = None
-        if analysis.code_block:
-            code_block_dto = CodeBlockBase(
-                id=analysis.code_block.id,
-                created_at=analysis.code_block.created_at,
-                raw_code=analysis.code_block.raw_code,
-                line_start=analysis.code_block.line_start,
-                line_end=analysis.code_block.line_end,
-                file_path=analysis.code_block.file_path
+        if analysis.code_block is None:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Analysis {analysis_insp.attrs.id.value} has no associated code block"
             )
+        
+        code_block_insp = inspect(analysis.code_block)
+        code_block_dto = CodeBlockBase(
+            id=code_block_insp.attrs.id.value,
+            created_at=code_block_insp.attrs.created_at.value,
+            raw_code=code_block_insp.attrs.raw_code.value,
+            line_start=code_block_insp.attrs.line_start.value,
+            line_end=code_block_insp.attrs.line_end.value,
+            file_path=code_block_insp.attrs.file_path.value if code_block_insp.attrs.file_path.value else None
+        )
         
         # Build suggested_replacement CodeBlockBase if exists
         suggested_replacement_dto = None
-        if analysis.suggested_replacement:
+        if analysis_insp.attrs.suggested_replacement.value is not None:
             # For now, suggested_replacement is stored as text in database
             # We need to create a minimal CodeBlockBase for it
             # In future, we might store it as proper CodeBlock
             suggested_replacement_dto = CodeBlockBase(
-                id=f"{analysis.id}_replacement",
-                created_at=analysis.created_at,
-                raw_code=analysis.suggested_replacement,
+                id=f"{analysis_insp.attrs.id.value}_replacement",
+                created_at=analysis_insp.attrs.created_at.value,
+                raw_code=analysis_insp.attrs.suggested_replacement.value,
                 line_start=0,
                 line_end=0,
                 file_path=None
             )
         
+        # Get risk level as string if exists
+        risk_level_str = None
+        if analysis_insp.attrs.risk_level.value is not None:
+            risk_level_str = analysis_insp.attrs.risk_level.value.value
+        
         analysis_detail = AnalysisDetail(
-            id=analysis.id,
-            created_at=analysis.created_at,
-            session_id=analysis.session_id,
-            code_block_id=analysis.code_block_id,
-            code_block_type=CodeBlockType(analysis.code_block_type.value),
+            id=analysis_insp.attrs.id.value,
+            created_at=analysis_insp.attrs.created_at.value,
+            session_id=analysis_insp.attrs.session_id.value,
+            code_block_id=analysis_insp.attrs.code_block_id.value,
+            code_block_type=CodeBlockType(analysis_insp.attrs.code_block_type.value.value),
             suggested_replacement=suggested_replacement_dto,
-            code_block=code_block_dto
+            code_block=code_block_dto,
+            # Enhanced fields
+            cwe_id=analysis_insp.attrs.cwe_id.value,
+            owasp_category=analysis_insp.attrs.owasp_category.value,
+            risk_level=risk_level_str,
+            confidence_score=analysis_insp.attrs.confidence_score.value,
+            vulnerability_description=analysis_insp.attrs.vulnerability_description.value,
+            exploitation_scenario=analysis_insp.attrs.exploitation_scenario.value,
+            remediation_explanation=analysis_insp.attrs.remediation_explanation.value,
+            verification_result=analysis_insp.attrs.verification_result.value,
+            llm_metadata=analysis_insp.attrs.llm_metadata.value
         )
         analyses.append(analysis_detail)
     
+    # Use SQLAlchemy inspect to get actual attribute values with proper typing
+    from sqlalchemy import inspect
+    session_insp = inspect(session)
+    
+    session_id = session_insp.attrs.id.value
+    status_value = DTOSessionStatus(session_insp.attrs.status.value.value)
+    progress_value = session_insp.attrs.progress.value
+    created_at_value = session_insp.attrs.created_at.value
+    updated_at_value = session_insp.attrs.updated_at.value
+    completed_at_value = session_insp.attrs.completed_at.value
+    error_message_value = session_insp.attrs.error_message.value
+    
     return GetSessionOutput(
-        id=session.id,
-        status=SessionStatus(session.status.value),
-        progress=session.progress,
-        created_at=session.created_at,
-        updated_at=session.updated_at,
-        completed_at=session.completed_at,
-        error_message=session.error_message,
+        id=session_id,
+        status=status_value,
+        progress=progress_value,
+        created_at=created_at_value,
+        updated_at=updated_at_value,
+        completed_at=completed_at_value,
+        error_message=error_message_value,
         analyses=analyses
     )
 
@@ -212,10 +256,18 @@ async def get_session_status(
             detail=f"Session {session_id} not found"
         )
     
+    # Use SQLAlchemy inspect to get actual attribute values with proper typing
+    from sqlalchemy import inspect
+    session_insp = inspect(session)
+    
+    session_id_value = session_insp.attrs.id.value
+    status_value = DTOSessionStatus(session_insp.attrs.status.value.value)
+    progress_value = session_insp.attrs.progress.value
+    
     return SessionStatusResponse(
-        session_id=session.id,
-        status=SessionStatus(session.status.value),
-        progress=session.progress
+        session_id=session_id_value,
+        status=status_value,
+        progress=progress_value
     )
 
 @router.patch("/sessions/{session_id}",
@@ -250,18 +302,26 @@ async def update_session(
             detail=f"Session {session_id} not found"
         )
     
-    # Update fields
+    # Update fields - using direct assignment which works at runtime
+    # Pylance has incorrect type stubs for SQLAlchemy, but this is correct
     if update_data.status:
-        session.status = update_data.status
+        # Use setattr to avoid direct assignment type errors
+        setattr(session, 'status', update_data.status.value)
+    
     if update_data.progress is not None:
-        session.progress = update_data.progress
+        setattr(session, 'progress', update_data.progress)
+    
     if update_data.error_message is not None:
-        session.error_message = update_data.error_message
+        setattr(session, 'error_message', update_data.error_message)
     
     # Update timestamp and commit
-    session.updated_at = datetime.utcnow()
-    if session.status == SessionStatus.COMPLETED or session.status == SessionStatus.FAILED:
-        session.completed_at = datetime.utcnow()
+    setattr(session, 'updated_at', datetime.utcnow())
+    
+    # Check if status changed to COMPLETED or FAILED
+    # Get the status value that was just set
+    new_status = update_data.status.value if update_data.status else None
+    if new_status and (new_status == ModelSessionStatus.COMPLETED.value or new_status == ModelSessionStatus.FAILED.value):
+        setattr(session, 'completed_at', datetime.utcnow())
     
     await db.commit()
     
