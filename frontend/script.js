@@ -429,7 +429,11 @@
             
             // Extract code snippets
             const unsafeCode = analysis.code_block?.raw_code || 'No code available';
-            const safeCode = analysis.suggested_replacement || null;
+            const safeCode = analysis.suggested_replacement?.raw_code || null;
+            
+            // Log the suggested_replacement field for debugging
+            console.log(`Analysis ${analysis.id} - suggested_replacement field:`, analysis.suggested_replacement);
+            console.log(`Analysis ${analysis.id} - safeCode extracted:`, safeCode);
             
             // Extract security metadata
             const cweId = analysis.cwe_id;

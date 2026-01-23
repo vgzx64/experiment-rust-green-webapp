@@ -5,6 +5,7 @@ from .create_session_output import CreateSessionOutput
 from .get_session_output import GetSessionOutput
 from .update_session_input import UpdateSessionInput
 from .session_status_response import SessionStatusResponse
+from .session_list_output import SessionListOutput
 
 __all__ = [
     "SessionBase",
@@ -13,4 +14,5 @@ __all__ = [
     "GetSessionOutput",
     "UpdateSessionInput",
     "SessionStatusResponse",
+    "SessionListOutput",
 ]

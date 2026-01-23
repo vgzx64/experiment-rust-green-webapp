@@ -14,6 +14,7 @@ from .sessions import (
     GetSessionOutput,
     UpdateSessionInput,
     SessionStatusResponse,
+    SessionListOutput,
 )
 
 from .code_blocks import (
@@ -39,6 +40,7 @@ __all__ = [
     "GetSessionOutput",
     "UpdateSessionInput",
     "SessionStatusResponse",
+    "SessionListOutput",
     
     # CodeBlocks
     "CodeBlockBase",

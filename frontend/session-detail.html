@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>rust-green | Session Details</title>
+    <!-- New CSS Architecture (BEM + Utility-First) -->
+    <link rel="stylesheet" href="css/main.css">
+    <!-- Original CSS for backward compatibility during transition -->
+    <link rel="stylesheet" href="style.css">
+    <!-- External dependencies -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Simple Header -->
+    <header class="simple-header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>rust-green</span>
+                <span class="tagline">Rust Code Safety Analyzer</span>
+            </div>
+            <nav class="simple-nav">
+                <a href="index.html" class="nav-item">Analyze</a>
+                <a href="sessions.html" class="nav-item">Sessions</a>
+                <a href="#" class="nav-item">Research</a>
+                <a href="#" class="nav-item">Settings</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="simple-main">
+        <!-- Back Navigation -->
+        <div class="back-navigation">
+            <a href="sessions.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to Sessions
+            </a>
+        </div>
+
+        <!-- Page Title -->
+        <div class="page-title">
+            <h2>Session Analysis Results</h2>
+            <p>Detailed analysis of Rust code safety issues</p>
+        </div>
+
+        <!-- Session Metadata -->
+        <div class="session-metadata" id="session-metadata">
+            <div class="metadata-grid">
+                <div class="metadata-item">
+                    <span class="metadata-label">Session ID</span>
+                    <span class="metadata-value" id="session-id">Loading...</span>
+                </div>
+                <div class="metadata-item">
+                    <span class="metadata-label">Status</span>
+                    <span class="metadata-value">
+                        <span class="session-status-badge" id="session-status">Loading...</span>
+                    </span>
+                </div>
+                <div class="metadata-item">
+                    <span class="metadata-label">Created</span>
+                    <span class="metadata-value" id="session-created">Loading...</span>
+                </div>
+                <div class="metadata-item">
+                    <span class="metadata-label">Completed</span>
+                    <span class="metadata-value" id="session-completed">Loading...</span>
+                </div>
+                <div class="metadata-item">
+                    <span class="metadata-label">Progress</span>
+                    <span class="metadata-value" id="session-progress">Loading...</span>
+                </div>
+                <div class="metadata-item">
+                    <span class="metadata-label">Analyses Found</span>
+                    <span class="metadata-value" id="analysis-count">Loading...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Message (if any) -->
+        <div class="error-message" id="error-message" style="display: none;">
+            <div class="error-content">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    <h4>Analysis Failed</h4>
+                    <p id="error-text">Error message will appear here</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Summary (similar to main page) -->
+        <div class="results-summary" id="results-summary">
+            <div class="summary-item total">
+                <div class="summary-value">0</div>
+                <div class="summary-label">Total Issues</div>
+            </div>
+            <div class="summary-item replaceable">
+                <div class="summary-value">0</div>
+                <div class="summary-label">Replaceable</div>
+            </div>
+            <div class="summary-item non-replaceable">
+                <div class="summary-value">0</div>
+                <div class="summary-label">Non-Replaceable</div>
+            </div>
+            <div class="summary-item conditionally-replaceable">
+                <div class="summary-value">0</div>
+                <div class="summary-label">Conditionally Replaceable</div>
+            </div>
+        </div>
+
+        <!-- Progress Display (for processing sessions) -->
+        <div class="progress-display" id="progress-display" style="display: none;">
+            <div class="progress-header">
+                <h4><i class="fas fa-sync-alt fa-spin"></i> Analysis in Progress</h4>
+                <span class="analysis-status">Status: PENDING (0%)</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" style="width: 0%">0%</div>
+            </div>
+            <div class="progress-details">
+                <span><i class="fas fa-clock"></i> Session ID: <span id="detail-session-id">-</span></span>
+                <span><i class="fas fa-hourglass-half"></i> Time elapsed: <span id="detail-time-elapsed">0s</span></span>
+            </div>
+        </div>
+
+        <!-- Findings Container (similar to main page) -->
+        <div class="findings-container" id="findings-container">
+            <div class="loading-message">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading analysis results...</p>
+            </div>
+        </div>
+
+        <!-- No Findings Message -->
+        <div class="no-findings-message" id="no-findings-message" style="display: none;">
+            <div class="status-message">
+                <i class="fas fa-check-circle"></i>
+                <p>No safety issues found! The Rust code appears to be safe.</p>
+            </div>
+        </div>
+
+        <!-- Session Actions -->
+        <div class="session-actions">
+            <button id="reanalyze-btn" class="secondary-btn">
+                <i class="fas fa-redo"></i> Re-analyze
+            </button>
+            <button id="export-btn" class="secondary-btn">
+                <i class="fas fa-download"></i> Export Results
+            </button>
+            <button id="delete-btn" class="text-btn danger">
+                <i class="fas fa-trash"></i> Delete Session
+            </button>
+        </div>
+    </main>
+
+    <!-- Simple Footer -->
+    <footer class="simple-footer">
+        <p>rust-green v0.1 • AI-powered Rust safety analysis • <a href="#">Documentation</a> • <a href="#">GitHub</a></p>
+        <p class="disclaimer">Always review AI suggestions before deploying code changes.</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="session-detail.js"></script>
+</body>
+</html>

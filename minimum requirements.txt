@@ -15,7 +15,7 @@ of the text is allowed.
 2. mapping to the corresponding CWE and OWASP Top 10 categories;
 3. a textual explanation of the vulnerability and a possible exploitation scenario.
 
-3. Implement the LLM-based remediation stage, including:
+3. Implement the LLM-based remediation stage, including: [DONE]
 
 1. generation of a fixed version of the code or a patch/diff;
 2. explanation of the applied changes.

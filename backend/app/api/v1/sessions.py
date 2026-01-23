@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 
 from app.database import get_db
@@ -12,6 +12,7 @@ from app.api.dto import (
     GetSessionOutput,
     UpdateSessionInput,
     SessionStatusResponse,
+    SessionListOutput,
     SessionStatus as DTOSessionStatus,
     CodeBlockType,
     AnalysisDetail,
@@ -20,6 +21,89 @@ from app.api.dto import (
 from app.services.session_service import SessionService
 
 router = APIRouter()
+
+@router.get("/sessions", 
+            response_model=List[SessionListOutput],
+            summary="List analysis sessions",
+            description="""List all analysis sessions with optional filtering.
+            
+## Parameters
+- `skip`: Number of sessions to skip (for pagination)
+- `limit`: Maximum number of sessions to return (default: 100, max: 1000)
+- `status_filter`: Filter by session status (PENDING, PROCESSING, COMPLETED, FAILED)
+
+## Response
+Returns a list of session summaries including basic metadata.
+Use the session ID from the response to get detailed session information.
+
+## Notes
+- Sessions are returned in reverse chronological order (newest first)
+- For detailed analysis results, use GET /sessions/{id}
+- Large result sets should use pagination with skip/limit parameters""")
+async def list_sessions(
+    skip: int = 0,
+    limit: int = 100,
+    status_filter: Optional[DTOSessionStatus] = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """List analysis sessions with optional filtering."""
+    # Validate limit
+    if limit > 1000:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Limit cannot exceed 1000"
+        )
+    
+    session_service = SessionService(db)
+    
+    # Convert DTO status to model status if provided
+    model_status = None
+    if status_filter:
+        model_status = ModelSessionStatus(status_filter.value)
+    
+    # Get sessions from database
+    sessions = await session_service.list_sessions(
+        skip=skip,
+        limit=limit,
+        status=model_status
+    )
+    
+    # Convert to DTOs with analysis counts
+    from sqlalchemy import select, func
+    session_outputs = []
+    
+    for session in sessions:
+        # Get analysis count for this session
+        result = await db.execute(
+            select(func.count(Analysis.id)).where(Analysis.session_id == session.id)
+        )
+        analysis_count = result.scalar() or 0
+        
+        # Use SQLAlchemy inspect to get actual attribute values with proper typing
+        from sqlalchemy import inspect
+        session_insp = inspect(session)
+        
+        session_id = session_insp.attrs.id.value
+        status_value = DTOSessionStatus(session_insp.attrs.status.value.value)
+        progress_value = session_insp.attrs.progress.value
+        created_at_value = session_insp.attrs.created_at.value
+        updated_at_value = session_insp.attrs.updated_at.value
+        completed_at_value = session_insp.attrs.completed_at.value
+        error_message_value = session_insp.attrs.error_message.value
+        
+        session_output = SessionListOutput(
+            id=session_id,
+            status=status_value,
+            progress=progress_value,
+            created_at=created_at_value,
+            updated_at=updated_at_value,
+            completed_at=completed_at_value,
+            error_message=error_message_value,
+            analysis_count=analysis_count
+        )
+        session_outputs.append(session_output)
+    
+    return session_outputs
 
 @router.post("/sessions", 
              response_model=CreateSessionOutput, 
