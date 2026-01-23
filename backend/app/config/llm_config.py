@@ -23,12 +23,12 @@ class LLMConfig(BaseSettings):
     enabled: bool = False
     
     # Generation parameters
-    max_tokens: int = 4000
-    temperature: float = 0.1
-    timeout: int = 30  # seconds
+    max_tokens: int = 8000
+    temperature: float = 0.0
+    timeout: int = 300 # seconds
     
     # Retry configuration
-    max_retries: int = 3
+    max_retries: int = 0
     retry_delay: int = 2  # seconds
     
     # Cost/token tracking

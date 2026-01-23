@@ -2,7 +2,7 @@ Minimum Requirements (Must-Have)
 As part of the assignment, the student must:
 
 1. Implement a utility or a web application that accepts a fragment of source code (as text
-input or as a file). (DONE0
+input or as a file). (DONE]
 
 1. The code may be written by the student or taken from an open repository.
 2. ❗ The use of LLMs to generate the initial vulnerable code is strictly prohibited.
@@ -20,7 +20,7 @@ of the text is allowed.
 1. generation of a fixed version of the code or a patch/diff;
 2. explanation of the applied changes.
 
-4. Implement the re-check stage using LLM:
+4. Implement the re-check stage using LLM: [DONE]
 
 1. analysis of the fixed code;
 2. confirmation that the vulnerability has been eliminated;

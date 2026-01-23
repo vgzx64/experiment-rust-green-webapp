@@ -32,7 +32,8 @@ class LLMService:
         self.client = AsyncOpenAI(
             api_key=llm_config.api_key,
             base_url=llm_config.base_url,
-            timeout=llm_config.timeout
+            timeout=llm_config.timeout,
+            max_retries=llm_config.max_retries
         )
         self.model = model
         self.max_tokens = llm_config.max_tokens
@@ -71,7 +72,6 @@ class LLMService:
             response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
-                max_tokens=self.max_tokens,
                 temperature=self.temperature,
                 response_format={"type": "json_object"}  # Request JSON response
             )
@@ -154,7 +154,7 @@ class LLMService:
             "line_numbers": []
         }
         
-        Be specific and technical in your analysis."""
+        Be specific, technical, and concise in your analysis."""
         
         prompt = f"""Analyze this Rust code for security vulnerabilities:
         
@@ -162,7 +162,7 @@ class LLMService:
         
         {f"Additional context: {context}" if context else ""}
         
-        Provide your analysis in the specified JSON format."""
+        Provide concise analysis in the specified JSON format."""
         
         metadata = {}  # Initialize metadata
         try:
@@ -221,7 +221,9 @@ class LLMService:
         1. Eliminates the security vulnerability
         2. Maintains functionality
         3. Follows Rust best practices
-        4. Includes appropriate error handling"""
+        4. Includes appropriate error handling
+        
+        Provide concise explanations and remediation."""
         
         vulnerability_info = analysis.get("vulnerability_description", "Security vulnerability")
         cwe = analysis.get("cwe_id", "Unknown CWE")
@@ -234,7 +236,7 @@ class LLMService:
         Vulnerability: {vulnerability_info}
         CWE: {cwe}
         
-        Provide the fixed code and explanation in the specified JSON format."""
+        Provide concise remediation in the specified JSON format."""
         
         metadata = {}  # Initialize metadata
         try:
@@ -246,8 +248,8 @@ class LLMService:
             
             return remediation
             
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse remediation response: {e}")
+        except Exception as e:
+            logger.error(f"Failed to get: {e}")
             return {
                 "fixed_code": vulnerable_code,  # Fallback to original
                 "explanation": f"Failed to generate remediation: {str(e)}",
@@ -286,7 +288,7 @@ class LLMService:
             "new_issues": ["List any new security issues found", "..."]
         }
         
-        Be thorough in your analysis."""
+        Be thorough yet concise in your analysis."""
         
         vulnerability = analysis.get("vulnerability_description", "Security vulnerability")
         
@@ -306,7 +308,7 @@ class LLMService:
         2. No new security issues are introduced
         3. The functionality is preserved
         
-        Provide verification results in the specified JSON format."""
+        Provide concise verification results in the specified JSON format."""
         
         metadata = {}  # Initialize metadata
         try:
@@ -318,8 +320,8 @@ class LLMService:
             
             return verification
             
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse verification response: {e}")
+        except Exception as e:
+            logger.error(f"Failed to get verification response: {e}")
             return {
                 "verification_passed": False,
                 "verification_explanation": f"Verification failed: {str(e)}",
