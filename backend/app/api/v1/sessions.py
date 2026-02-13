@@ -19,6 +19,7 @@ from app.api.dto import (
     CodeBlockBase,
 )
 from app.services.session_service import SessionService
+from app.services.diff_generator import DiffGenerator
 
 router = APIRouter()
 
@@ -244,6 +245,7 @@ async def get_session(
         
         # Build suggested_replacement CodeBlockBase if exists
         suggested_replacement_dto = None
+        diff_text = None
         if analysis_insp.attrs.suggested_replacement.value is not None:
             # For now, suggested_replacement is stored as text in database
             # We need to create a minimal CodeBlockBase for it
@@ -255,6 +257,16 @@ async def get_session(
                 line_start=0,
                 line_end=0,
                 file_path=None
+            )
+            
+            # Generate diff between original and remediation code
+            original_code = code_block_insp.attrs.raw_code.value
+            fixed_code = analysis_insp.attrs.suggested_replacement.value
+            diff_text = DiffGenerator.generate_unified_diff(
+                original_code,
+                fixed_code,
+                original_label="vulnerable_code",
+                fixed_label="remediated_code"
             )
         
         # Get risk level as string if exists
@@ -278,6 +290,7 @@ async def get_session(
             vulnerability_description=analysis_insp.attrs.vulnerability_description.value,
             exploitation_scenario=analysis_insp.attrs.exploitation_scenario.value,
             remediation_explanation=analysis_insp.attrs.remediation_explanation.value,
+            diff=diff_text,
             llm_metadata=analysis_insp.attrs.llm_metadata.value
         )
         analyses.append(analysis_detail)

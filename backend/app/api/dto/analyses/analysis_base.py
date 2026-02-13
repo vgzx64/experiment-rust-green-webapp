@@ -21,5 +21,8 @@ class AnalysisBase(BaseDTO):
     exploitation_scenario: Optional[str] = None
     remediation_explanation: Optional[str] = None
     
+    # Diff between original and remediated code
+    diff: Optional[str] = None
+    
     # LLM metadata
     llm_metadata: Optional[dict] = None

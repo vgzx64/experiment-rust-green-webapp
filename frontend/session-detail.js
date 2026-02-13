@@ -336,6 +336,9 @@
             const unsafeCode = analysis.code_block?.raw_code || 'No code available';
             const safeCode = analysis.suggested_replacement?.raw_code || null;
             
+            // Get diff if available
+            const diffCode = analysis.diff || null;
+            
             const card = document.createElement('div');
             card.className = `finding-card ${typeClass}`;
             card.innerHTML = `
@@ -346,6 +349,13 @@
                 </div>
                 
                 <div class="finding-content">
+                    ${diffCode ? `
+                    <div class="code-block diff">
+                        <div class="code-label">Diff (Changes):</div>
+                        <pre><code>${this.escapeHtml(diffCode)}</code></pre>
+                    </div>
+                    ` : ''}
+                    
                     <div class="code-block">
                         <div class="code-label">Unsafe Code:</div>
                         <pre><code>${this.escapeHtml(unsafeCode)}</code></pre>

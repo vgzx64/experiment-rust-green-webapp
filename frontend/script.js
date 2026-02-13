@@ -431,9 +431,13 @@
             const unsafeCode = analysis.code_block?.raw_code || 'No code available';
             const safeCode = analysis.suggested_replacement?.raw_code || null;
             
+            // Get diff if available
+            const diffCode = analysis.diff || null;
+            
             // Log the suggested_replacement field for debugging
             console.log(`Analysis ${analysis.id} - suggested_replacement field:`, analysis.suggested_replacement);
             console.log(`Analysis ${analysis.id} - safeCode extracted:`, safeCode);
+            console.log(`Analysis ${analysis.id} - diff:`, diffCode);
             
             // Extract security metadata
             const cweId = analysis.cwe_id;
@@ -475,6 +479,14 @@
                     <div class="description-section">
                         <div class="section-label"><i class="fas fa-bolt"></i> Exploitation Scenario</div>
                         <div class="section-content">${this.escapeHtml(exploitationScenario)}</div>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Diff (Changes) -->
+                    ${diffCode ? `
+                    <div class="code-block diff">
+                        <div class="code-label"><i class="fas fa-exchange-alt"></i> Diff (Changes)</div>
+                        <pre><code>${this.escapeHtml(diffCode)}</code></pre>
                     </div>
                     ` : ''}
                     
