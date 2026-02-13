@@ -1,14 +1,22 @@
 import os
+from pathlib import Path
 from pydantic_settings import BaseSettings
 from typing import Optional
 from dotenv import load_dotenv, find_dotenv
 
 
-os.chdir("backend")
-print(os.getcwd())
-if not find_dotenv():
-    raise OSError(".env not found")
-load_dotenv()
+# Get the directory of this config file
+config_dir = Path(__file__).parent.parent.parent
+os.chdir(config_dir)
+
+# Try to find .env in the backend directory
+env_path = config_dir / "backend" / ".env"
+if env_path.exists():
+    load_dotenv(env_path)
+elif not find_dotenv():
+    pass  # No .env file - continue without it
+else:
+    load_dotenv()
 
 
 class LLMConfig(BaseSettings):

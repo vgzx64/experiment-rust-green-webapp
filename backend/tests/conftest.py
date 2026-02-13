@@ -1,4 +1,13 @@
-"""Shared test fixtures and configuration."""
+"""Shared test fixtures and configuration.
+
+To run with REAL LLM API:
+  export LLM_ENABLED=true
+  export LLM_API_KEY=your-key
+  export LLM_BASE_URL=https://api.deepseek.com/v1
+  python -m pytest tests/ -v
+
+Default: Uses mock LLM (no API calls, no cost)
+"""
 import asyncio
 import os
 import pytest
@@ -8,10 +17,12 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from httpx import AsyncClient, ASGITransport
 
 # Set testing environment variables before imports
-os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
-os.environ["LLM_API_KEY"] = "test-api-key"
-os.environ["LLM_BASE_URL"] = "https://api.deepseek.com/v1"
-os.environ["LLM_ENABLED"] = "false"
+# Override with real values if LLM_ENABLED=true
+os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///:memory:")
+os.environ.setdefault("LLM_API_KEY", "test-api-key")
+os.environ.setdefault("LLM_BASE_URL", "https://api.deepseek.com/v1")
+# Default: disabled (mock mode) - set LLM_ENABLED=true to use real API
+os.environ.setdefault("LLM_ENABLED", "false")
 
 
 @pytest.fixture(scope="session")
