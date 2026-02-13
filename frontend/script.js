@@ -443,7 +443,6 @@
             const vulnerabilityDescription = analysis.vulnerability_description;
             const exploitationScenario = analysis.exploitation_scenario;
             const remediationExplanation = analysis.remediation_explanation;
-            const verificationResult = analysis.verification_result;
             
             const card = document.createElement('div');
             card.className = `finding-card ${typeClass}`;
@@ -498,14 +497,6 @@
                     <div class="description-section">
                         <div class="section-label"><i class="fas fa-wrench"></i> Remediation Explanation</div>
                         <div class="section-content">${this.escapeHtml(remediationExplanation)}</div>
-                    </div>
-                    ` : ''}
-                    
-                    <!-- Verification Result -->
-                    ${verificationResult ? `
-                    <div class="description-section verification">
-                        <div class="section-label"><i class="fas fa-check-double"></i> Verification Result</div>
-                        <div class="section-content">${this.escapeHtml(verificationResult)}</div>
                     </div>
                     ` : ''}
                 </div>

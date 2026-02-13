@@ -1,0 +1,92 @@
+﻿Practical Assignment №5
+AI-assisted Threat Modeling (STRIDE + DFD + Mitigations + DREAD/CVSS)
+
+Purpose of the Work
+To teach master’s students how to apply artificial intelligence tools to build a threat model for a software system, analyze risks, and design mitigation measures using modern methodologies such as STRIDE, Data Flow Diagrams (DFD), and risk scoring models (DREAD or CVSS).
+
+Expected Learning Outcomes
+Upon completing the assignment, the student should be able to:
+    • use AI tools to generate and refine threat models;
+    • create Data Flow Diagrams (DFDs) to represent system data flows;
+    • classify threats using the STRIDE methodology;
+    • evaluate risks using DREAD or CVSS scoring models;
+    • develop appropriate mitigation measures;
+    • document the threat modeling process according to Secure SDLC practices.
+
+Assignment
+
+1. Defining the System Under Analysis
+Choose one of the following systems (or propose your own):
+    • web application (e-commerce, user dashboard, CRM module),
+    • authentication service,
+    • mobile application,
+    • microservice module,
+    • IoT system,
+    • API-based service with a database.
+
+Provide a brief description including:
+    • the purpose of the system,
+    • key features,
+    • system boundaries (in-scope / out-of-scope).
+
+2. Creating the Data Flow Diagram (DFD)
+Using ChatGPT or another LLM-based tool:
+    • identify external entities,
+    • system processes,
+    • data stores,
+    • data flows between components.
+
+Create a DFD Level 0 or Level 1.
+AI may be used to generate draft diagrams, but the student must validate and refine them manually.
+
+3. STRIDE Threat Classification
+For each element of the DFD, identify potential threats under STRIDE:
+    • S — Spoofing
+    • T — Tampering
+    • R — Repudiation
+    • I — Information Disclosure
+    • D — Denial of Service
+    • E — Elevation of Privilege
+Using an AI tool:
+    • generate an initial list of threats,
+    • remove irrelevant entries,
+    • add missing threats,
+    • prepare a finalized STRIDE threat table.
+
+4. Risk Scoring (DREAD or CVSS)
+Evaluate each identified threat using one of the following:
+Option A — DREAD
+    • Damage Potential
+    • Reproducibility
+    • Exploitability
+    • Affected Users
+    • Discoverability
+
+Option B — CVSS v3.1
+    • Base metrics
+    • Temporal metrics
+    • Environmental metrics
+
+AI assistance is allowed, but the final scores must be assigned and justified by the student.
+
+5. Designing Mitigation Measures
+For each threat, define risk mitigation strategies, for example:
+    • authentication and authorization controls,
+    • data integrity mechanisms,
+    • encryption (in transit / at rest),
+    • rate limiting and WAF,
+    • logging and auditing,
+    • service isolation and segmentation.
+
+Use AI for suggestions, then refine and justify the selected measures.
+
+6. Final Report
+Prepare a report (6–10 pages) that includes:
+    1. description of the analyzed system;
+    2. DFD (diagram + component description);
+    3. STRIDE threat table;
+    4. DREAD or CVSS risk evaluation;
+    5. mitigation strategies with justification;
+    6. explanation of how AI was used and what was corrected manually;
+    7. conclusions regarding the quality of the threat model and limitations of AI tools.
+

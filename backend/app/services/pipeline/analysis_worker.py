@@ -166,7 +166,6 @@ class AnalysisWorker:
             
             vulnerability_analysis = llm_results.get("vulnerability_analysis", {})
             remediation = llm_results.get("remediation")
-            verification = llm_results.get("verification")
             
             # If no vulnerability found, return empty list
             if vulnerability_analysis.get("vulnerability_type") == "None":
@@ -207,11 +206,9 @@ class AnalysisWorker:
                 "vulnerability_description": vulnerability_analysis.get("vulnerability_description"),
                 "exploitation_scenario": vulnerability_analysis.get("exploitation_scenario"),
                 "remediation_explanation": remediation.get("explanation") if remediation else None,
-                "verification_result": verification.get("verification_explanation") if verification else None,
                 "llm_metadata": {
                     "vulnerability_analysis": vulnerability_analysis.get("llm_metadata", {}),
-                    "remediation": remediation.get("llm_metadata", {}) if remediation else {},
-                    "verification": verification.get("llm_metadata", {}) if verification else {}
+                    "remediation": remediation.get("llm_metadata", {}) if remediation else {}
                 },
                 "suggestions": [remediation.get("fixed_code")] if remediation and remediation.get("fixed_code") else []
             }]
@@ -269,7 +266,6 @@ class AnalysisWorker:
                     "vulnerability_description": block_data.get("vulnerability_description"),
                     "exploitation_scenario": block_data.get("exploitation_scenario"),
                     "remediation_explanation": block_data.get("remediation_explanation"),
-                    "verification_result": block_data.get("verification_result"),
                     "llm_metadata": block_data.get("llm_metadata"),
                 })
             

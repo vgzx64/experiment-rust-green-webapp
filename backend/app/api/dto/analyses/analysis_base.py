@@ -20,7 +20,6 @@ class AnalysisBase(BaseDTO):
     vulnerability_description: Optional[str] = None
     exploitation_scenario: Optional[str] = None
     remediation_explanation: Optional[str] = None
-    verification_result: Optional[str] = None
     
     # LLM metadata
     llm_metadata: Optional[dict] = None

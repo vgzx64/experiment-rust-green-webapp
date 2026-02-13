@@ -1,0 +1,84 @@
+﻿Assignment №6
+Development of an AI Agent for Advanced Software
+Engineering Tasks
+
+Purpose of the Work
+To teach master’s students how to design and implement AI agents capable of performing complex software engineering tasks, including architectural analysis, secure refactoring, DevOps automation, ML pipeline construction, threat modeling, or multi-agent collaboration.
+
+Expected Learning Outcomes
+Upon completing the assignment, the student should be able to:
+* design the architecture of an AI agent;
+* select appropriate AI tools or frameworks (at their discretion);
+* automate engineering tasks using AI;
+* manage agent context, tools, roles, and constraints;
+* evaluate the quality, reliability, and risks of autonomous AI systems;
+* document the agent’s architecture, behavior, and testing results.
+
+Topic Selection 
+A. AI Architect Agent
+An agent that generates system architecture, UML diagrams, NFRs, and architectural recommendations.
+B. AI Secure Refactoring Agent
+An agent that detects vulnerabilities (OWASP/CWE), proposes fixes, and performs secure code refactoring.
+C. AI DevOps Automation Agent
+An agent that generates Dockerfiles, CI/CD pipelines, and infrastructure configuration files.
+D. Auto-ML Pipeline Agent
+An agent that automates EDA → model selection → training → evaluation.
+E. Threat Modeling Agent
+An agent that produces STRIDE threats, DFD diagrams, risk scores (DREAD/CVSS), and mitigation strategies.
+F. Multi-Agent Software Engineering Team
+A coordinated team of agents (Architect, Developer, Reviewer, Tester) solving a shared engineering task.
+
+Tools and Frameworks 
+Students may use:
+* Autogen, LangChain, CrewAI — recommended,
+* OR any alternative approach, including:
+- ChatGPT API,
+- Python scripts,
+- HuggingFace models,
+- custom minimalistic agent logic.
+
+Using Autogen/LangChain/CrewAI is not mandatory.
+The only requirement is to produce a functional AI agent.
+
+Assignment
+1. Agent Design
+Define:
+* the agent’s role and purpose;
+* the engineering task(s) it will perform;
+* tools or APIs the agent may use;
+* safety and operational constraints;
+* overall architecture (or multi-agent architecture for Topic F).
+
+2. Implementation of the Prototype
+Develop a working prototype that performs the selected engineering task.
+Examples:
+* generating architecture and UML diagrams;
+* detecting and fixing security vulnerabilities;
+* building CI/CD pipelines;
+* automating an ML workflow;
+* generating STRIDE + risk scoring;
+* coordinating multiple agents in a shared workflow.
+
+3. Testing the Agent
+Conduct systematic testing:
+* run multiple scenarios;
+* identify failures and incorrect outputs;
+* refine prompts and agent behavior;
+* evaluate stability and reproducibility.
+
+4. Assessment of Quality and Limitations
+Analyze:
+* the accuracy and correctness of the agent’s outputs;
+* consistency and stability;
+* potential risks and ethical concerns;
+* limitations of LLM-based autonomous behavior.
+
+5. Final Report (6–10 pages)
+The report must include:
+1. selected topic and problem formulation;
+2. justification of the chosen framework or toolset;
+3. detailed agent architecture (or multi-agent structure);
+4. implementation details and representative prompts;
+5. testing methodology and results;
+6. analysis of failures, risks, and limitations;
+7. conclusions on the applicability of AI agents in software engineering.

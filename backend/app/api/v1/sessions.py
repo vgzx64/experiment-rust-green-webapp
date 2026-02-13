@@ -278,7 +278,6 @@ async def get_session(
             vulnerability_description=analysis_insp.attrs.vulnerability_description.value,
             exploitation_scenario=analysis_insp.attrs.exploitation_scenario.value,
             remediation_explanation=analysis_insp.attrs.remediation_explanation.value,
-            verification_result=analysis_insp.attrs.verification_result.value,
             llm_metadata=analysis_insp.attrs.llm_metadata.value
         )
         analyses.append(analysis_detail)

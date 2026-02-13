@@ -40,7 +40,6 @@ class Analysis(Base):
     vulnerability_description = Column(Text, nullable=True)
     exploitation_scenario = Column(Text, nullable=True)
     remediation_explanation = Column(Text, nullable=True)
-    verification_result = Column(Text, nullable=True)  # Re-check results
     
     # LLM metadata
     llm_metadata = Column(JSON, nullable=True)  # Raw LLM response, tokens used, etc.

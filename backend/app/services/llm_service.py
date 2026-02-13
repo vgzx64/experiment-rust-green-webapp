@@ -257,81 +257,9 @@ class LLMService:
                 "llm_metadata": metadata
             }
     
-    async def verify_remediation(self, original_code: str, fixed_code: str, 
-                                analysis: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Verify that remediation successfully fixes the vulnerability.
-        
-        Returns:
-        - verification_passed: bool
-        - verification_explanation: Detailed explanation
-        - new_issues: List of any new issues introduced
-        """
-        # Check if LLM client is available
-        if not self.client:
-            logger.warning("LLM client not available. Returning mock verification.")
-            return {
-                "verification_passed": True,
-                "verification_explanation": "LLM verification disabled (no API key configured). Assuming remediation is valid.",
-                "new_issues": [],
-                "llm_metadata": {"disabled": True, "reason": "no_api_key"}
-            }
-        
-        system_prompt = """You are a security verification expert.
-        Verify that the fixed code successfully addresses the original vulnerability
-        and doesn't introduce new security issues.
-        
-        Return response in JSON format:
-        {
-            "verification_passed": true|false,
-            "verification_explanation": "Detailed explanation of verification results",
-            "new_issues": ["List any new security issues found", "..."]
-        }
-        
-        Be thorough yet concise in your analysis."""
-        
-        vulnerability = analysis.get("vulnerability_description", "Security vulnerability")
-        
-        prompt = f"""Verify this remediation:
-        
-        Original Vulnerable Code:
-        {original_code}
-        
-        Fixed Code:
-        {fixed_code}
-        
-        Original Vulnerability: {vulnerability}
-        CWE: {analysis.get('cwe_id', 'Unknown')}
-        
-        Verify that:
-        1. The vulnerability is fixed in the fixed code
-        2. No new security issues are introduced
-        3. The functionality is preserved
-        
-        Provide concise verification results in the specified JSON format."""
-        
-        metadata = {}  # Initialize metadata
-        try:
-            response, metadata = await self._call_llm(prompt, system_prompt)
-            verification = json.loads(response)
-            
-            # Add metadata
-            verification["llm_metadata"] = metadata
-            
-            return verification
-            
-        except Exception as e:
-            logger.error(f"Failed to get verification response: {e}")
-            return {
-                "verification_passed": False,
-                "verification_explanation": f"Verification failed: {str(e)}",
-                "new_issues": ["Verification process error"],
-                "llm_metadata": metadata
-            }
-    
     async def complete_analysis_pipeline(self, code: str) -> Dict[str, Any]:
         """
-        Complete analysis pipeline: analyze → remediate → verify.
+        Complete analysis pipeline: analyze → remediate.
         
         Returns comprehensive analysis results.
         """
@@ -346,7 +274,6 @@ class LLMService:
             return {
                 "vulnerability_analysis": vulnerability_analysis,
                 "remediation": None,
-                "verification": None,
                 "pipeline_complete": True
             }
         
@@ -355,18 +282,9 @@ class LLMService:
         vulnerable_snippet = code  # In real implementation, extract vulnerable portion
         remediation = await self.generate_remediation(vulnerable_snippet, vulnerability_analysis)
         
-        # Step 3: Verify remediation
-        logger.info("Step 3: Verify remediation")
-        verification = await self.verify_remediation(
-            vulnerable_snippet,
-            remediation.get("fixed_code", vulnerable_snippet),
-            vulnerability_analysis
-        )
-        
         return {
             "vulnerability_analysis": vulnerability_analysis,
             "remediation": remediation,
-            "verification": verification,
             "pipeline_complete": True
         }
 
