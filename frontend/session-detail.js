@@ -417,9 +417,17 @@
             // Format display text for code block type
             const typeDisplayText = this.formatCodeBlockType(codeBlockType);
             
-            // Extract code snippets - suggested_replacement is a string, not an object
+            // Extract code snippets - suggested_replacement can be a string or object
             const unsafeCode = analysis.code_block?.raw_code || analysis.original_code || 'No code available';
-            const safeCode = analysis.suggested_replacement || null;
+            // Handle both string and object formats for suggested_replacement
+            let safeCode = null;
+            if (analysis.suggested_replacement) {
+                if (typeof analysis.suggested_replacement === 'string') {
+                    safeCode = analysis.suggested_replacement;
+                } else if (analysis.suggested_replacement.raw_code) {
+                    safeCode = analysis.suggested_replacement.raw_code;
+                }
+            }
             
             // Get diff if available
             const diffCode = analysis.diff || null;

@@ -102,7 +102,8 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "timestamp": "2023-10-01T10:00:00Z"}
+    from datetime import datetime
+    return {"status": "healthy", "timestamp": datetime.utcnow().isoformat() + "Z"}
 
 # Export the queue for use in other modules
 def get_analysis_queue():

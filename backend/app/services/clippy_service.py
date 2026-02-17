@@ -410,7 +410,7 @@ class ClippyService:
             lines.append(f"{i}. [{issue.severity.upper()}] {issue.rule_id}")
             lines.append(f"   File: {issue.file_path}:{issue.line_start}")
             lines.append(f"   Message: {issue.message}")
-            if issue.remediation_hint:
+            if hasattr(issue, 'remediation_hint') and issue.remediation_hint:
                 lines.append(f"   Hint: {issue.remediation_hint}")
             lines.append("")
         

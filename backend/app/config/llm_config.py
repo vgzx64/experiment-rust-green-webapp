@@ -5,25 +5,23 @@ from typing import Optional
 from dotenv import load_dotenv, find_dotenv
 
 
-# Get the directory of this config file
+# Get the directory of this config file (don't change working directory)
 config_dir = Path(__file__).parent.parent.parent
-os.chdir(config_dir)
 
 # Try to find .env in the backend directory
 env_path = config_dir / "backend" / ".env"
 if env_path.exists():
     load_dotenv(env_path)
-elif not find_dotenv():
-    pass  # No .env file - continue without it
-else:
+elif find_dotenv():
     load_dotenv()
+# If no .env file found, continue without it
 
 
 class LLMConfig(BaseSettings):
     """Configuration for LLM service."""
     
     # Core LLM configuration
-    api_key: Optional[str] = os.environ['LLM_API_KEY'] or None
+    api_key: Optional[str] = os.environ.get('LLM_API_KEY')
     model: str = "deepseek-chat"
     base_url: str = "https://api.deepseek.com"
     

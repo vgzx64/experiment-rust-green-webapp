@@ -425,6 +425,16 @@ class SastService:
     ):
         """Save verification result to database."""
         try:
+            # Extract before/after severity counts from severity_changes
+            severity_before = {
+                sev: data["before"] 
+                for sev, data in verification.severity_changes.items()
+            }
+            severity_after = {
+                sev: data["after"] 
+                for sev, data in verification.severity_changes.items()
+            }
+            
             result = SastVerificationResult(
                 session_id=session_id,
                 verification_status=verification.verification_status,
@@ -437,8 +447,8 @@ class SastService:
                 resolved_issues=[issue.issue_id for issue in verification.resolved_issues],
                 remaining_issues=[issue.issue_id for issue in verification.remaining_issues],
                 new_issues=[issue.issue_id for issue in verification.new_issues],
-                severity_before=verification.severity_changes,
-                severity_after=verification.severity_changes,  # Will be updated
+                severity_before=severity_before,
+                severity_after=severity_after,
                 verification_notes=verification.verification_notes
             )
             db.add(result)
