@@ -269,10 +269,14 @@ class AnalysisWorker:
             if remediation and remediation.get("fixed_code"):
                 analysis_type = "replaceable"
             
+            # Extract affected file for multi-file analysis
+            affected_file = vulnerability_analysis.get("affected_file")
+            
             return [{
                 "raw_code": code,
                 "line_start": line_start,
                 "line_end": line_end,
+                "file_path": affected_file,  # Track which file has the vulnerability
                 "analysis_type": analysis_type,
                 "risk_level": risk_level,
                 "cwe_id": vulnerability_analysis.get("cwe_id"),
@@ -303,7 +307,7 @@ class AnalysisWorker:
                 raw_code=block_data["raw_code"],
                 line_start=block_data["line_start"],
                 line_end=block_data["line_end"],
-                file_path=None  # Will be set when we have file structure
+                file_path=block_data.get("file_path")  # File path from Git analysis
             )
             db.add(code_block)
             await db.flush()  # Get the ID

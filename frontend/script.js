@@ -749,8 +749,11 @@
 
                 <div class="finding-actions">
                     ${safeCode ? `
-                    <button class="action-btn apply" data-analysis-id="${analysis.id}">
-                        <i class="fas fa-check"></i> Apply Fix
+                    <button class="action-btn download-fixed" data-session-id="${this.currentSessionId}">
+                        <i class="fas fa-file-archive"></i> Download Fixed Code
+                    </button>
+                    <button class="action-btn download-patches" data-session-id="${this.currentSessionId}">
+                        <i class="fas fa-file-code"></i> Download Patches
                     </button>
                     ` : ''}
                     <button class="action-btn false-positive" data-analysis-id="${analysis.id}">
@@ -765,7 +768,18 @@
                 </div>
             `;
             
-            // Add event listeners
+            // Add event listeners for download buttons
+            const downloadFixedBtn = card.querySelector('.action-btn.download-fixed');
+            if (downloadFixedBtn) {
+                downloadFixedBtn.addEventListener('click', () => this.downloadFixedFiles(this.currentSessionId));
+            }
+            
+            const downloadPatchesBtn = card.querySelector('.action-btn.download-patches');
+            if (downloadPatchesBtn) {
+                downloadPatchesBtn.addEventListener('click', () => this.downloadPatches(this.currentSessionId));
+            }
+            
+            // Old apply button listener (removed)
             const applyBtn = card.querySelector('.action-btn.apply');
             if (applyBtn) {
                 applyBtn.addEventListener('click', () => this.applyFix(analysis.id));
@@ -816,6 +830,30 @@
         applyFix: function(analysisId) {
             this.showMessage(`Applying fix for analysis ${analysisId.substring(0, 8)}...`, 'success');
             // In a real implementation, this would update the code editor
+        },
+        
+        downloadFixedFiles: function(sessionId) {
+            if (!sessionId) {
+                this.showMessage('No session ID available for download', 'error');
+                return;
+            }
+            
+            // Trigger download
+            const url = `${API_BASE_URL}/sessions/${sessionId}/download/fixed`;
+            window.open(url, '_blank');
+            this.showMessage('Downloading fixed code ZIP...', 'info');
+        },
+        
+        downloadPatches: function(sessionId) {
+            if (!sessionId) {
+                this.showMessage('No session ID available for download', 'error');
+                return;
+            }
+            
+            // Trigger download
+            const url = `${API_BASE_URL}/sessions/${sessionId}/download/patches`;
+            window.open(url, '_blank');
+            this.showMessage('Downloading patches ZIP...', 'info');
         },
         
         markAsFalsePositive: function(analysisId) {
