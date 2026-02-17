@@ -229,6 +229,12 @@ println!("Value: {}", value);</code></pre>
         <p class="disclaimer">Always review AI suggestions before deploying code changes.</p>
     </footer>
 
-    <script src="script.js"></script>
+    <!-- Modular JavaScript (load order matters) -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/git-handlers.js"></script>
+    <script src="js/findings.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
