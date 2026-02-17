@@ -108,6 +108,33 @@
             </div>
         </div>
 
+        <!-- SAST Verification Section -->
+        <div class="sast-verification" id="sast-verification" style="display: none;">
+            <h3><i class="fas fa-shield-alt"></i> SAST Verification</h3>
+            <div class="verification-grid">
+                <div class="verification-item">
+                    <span class="verification-label">Verification Status</span>
+                    <span class="verification-value" id="verification-status">-</span>
+                </div>
+                <div class="verification-item">
+                    <span class="verification-label">Verification Score</span>
+                    <span class="verification-value" id="verification-score">-</span>
+                </div>
+                <div class="verification-item">
+                    <span class="verification-label">Issues Resolved</span>
+                    <span class="verification-value" id="issues-resolved">-</span>
+                </div>
+                <div class="verification-item">
+                    <span class="verification-label">Issues Remaining</span>
+                    <span class="verification-value" id="issues-remaining">-</span>
+                </div>
+            </div>
+            <div class="verification-notes" id="verification-notes" style="display: none;">
+                <h4>Verification Notes</h4>
+                <pre id="verification-notes-text"></pre>
+            </div>
+        </div>
+
         <!-- Progress Display (for processing sessions) -->
         <div class="progress-display" id="progress-display" style="display: none;">
             <div class="progress-header">

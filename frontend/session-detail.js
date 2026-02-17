@@ -121,6 +121,9 @@
             // Show/hide progress display
             this.updateProgressDisplay(session);
             
+            // Update SAST verification display
+            this.updateSastVerification(session);
+            
             // Render findings
             this.renderFindings(session.analyses);
             
@@ -289,6 +292,88 @@
             }
         },
         
+        // Update SAST verification display
+        updateSastVerification: function(session) {
+            const sastVerificationEl = document.getElementById('sast-verification');
+            const verificationStatusEl = document.getElementById('verification-status');
+            const verificationScoreEl = document.getElementById('verification-score');
+            const issuesResolvedEl = document.getElementById('issues-resolved');
+            const issuesRemainingEl = document.getElementById('issues-remaining');
+            const verificationNotesEl = document.getElementById('verification-notes');
+            const verificationNotesTextEl = document.getElementById('verification-notes-text');
+            
+            // Check if session has verification data
+            if (!session.verification_status && !session.verification_score) {
+                if (sastVerificationEl) {
+                    sastVerificationEl.style.display = 'none';
+                }
+                return;
+            }
+            
+            // Show the verification section
+            if (sastVerificationEl) {
+                sastVerificationEl.style.display = 'block';
+            }
+            
+            // Update verification status
+            if (verificationStatusEl) {
+                const status = session.verification_status || 'pending';
+                verificationStatusEl.textContent = this.formatVerificationStatus(status);
+                verificationStatusEl.className = `verification-value status-${status}`;
+            }
+            
+            // Update verification score
+            if (verificationScoreEl) {
+                const score = session.verification_score;
+                if (score !== null && score !== undefined) {
+                    verificationScoreEl.textContent = `${Math.round(score * 100)}%`;
+                    verificationScoreEl.className = `verification-value score-${this.getScoreLevel(score)}`;
+                } else {
+                    verificationScoreEl.textContent = 'N/A';
+                }
+            }
+            
+            // Update issues resolved/remaining
+            if (issuesResolvedEl) {
+                issuesResolvedEl.textContent = session.issues_resolved || 0;
+            }
+            
+            if (issuesRemainingEl) {
+                issuesRemainingEl.textContent = session.issues_remaining || 0;
+            }
+            
+            // Show verification notes if available
+            if (verificationNotesEl && verificationNotesTextEl) {
+                if (session.verification_notes) {
+                    verificationNotesEl.style.display = 'block';
+                    verificationNotesTextEl.textContent = session.verification_notes;
+                } else {
+                    verificationNotesEl.style.display = 'none';
+                }
+            }
+        },
+        
+        // Format verification status for display
+        formatVerificationStatus: function(status) {
+            const statusMap = {
+                'pending': 'Pending',
+                'passed': 'Passed',
+                'failed': 'Failed',
+                'improved': 'Improved',
+                'degraded': 'Degraded',
+                'no_change': 'No Change'
+            };
+            return statusMap[status] || status;
+        },
+        
+        // Get score level for CSS class
+        getScoreLevel: function(score) {
+            if (score >= 0.9) return 'high';
+            if (score >= 0.7) return 'medium';
+            if (score >= 0.5) return 'low';
+            return 'critical';
+        },
+        
         // Render findings
         renderFindings: function(analyses) {
             const findingsContainer = document.getElementById('findings-container');
@@ -332,21 +417,52 @@
             // Format display text for code block type
             const typeDisplayText = this.formatCodeBlockType(codeBlockType);
             
-            // Extract code snippets
-            const unsafeCode = analysis.code_block?.raw_code || 'No code available';
-            const safeCode = analysis.suggested_replacement?.raw_code || null;
+            // Extract code snippets - suggested_replacement is a string, not an object
+            const unsafeCode = analysis.code_block?.raw_code || analysis.original_code || 'No code available';
+            const safeCode = analysis.suggested_replacement || null;
             
             // Get diff if available
             const diffCode = analysis.diff || null;
             
+            // Get SAST metadata
+            const riskLevel = analysis.risk_level || 'unknown';
+            const cweId = analysis.cwe_id || null;
+            const owaspCategory = analysis.owasp_category || null;
+            const confidenceScore = analysis.confidence_score;
+            
+            // Build metadata badges
+            const metadataBadges = [];
+            if (cweId) {
+                metadataBadges.push(`<span class="metadata-badge cwe" title="CWE ID">${cweId}</span>`);
+            }
+            if (owaspCategory) {
+                metadataBadges.push(`<span class="metadata-badge owasp" title="OWASP Category">${owaspCategory}</span>`);
+            }
+            if (riskLevel) {
+                metadataBadges.push(`<span class="metadata-badge risk risk-${riskLevel}" title="Risk Level">${riskLevel.toUpperCase()}</span>`);
+            }
+            
             const card = document.createElement('div');
-            card.className = `finding-card ${typeClass}`;
+            card.className = `finding-card ${typeClass} risk-${riskLevel}`;
             card.innerHTML = `
                 <div class="finding-header">
                     <span class="finding-badge ${typeClass}">${typeDisplayText}</span>
                     <span class="finding-title">${this.getFindingTitle(codeBlockType)}</span>
-                    <span class="finding-confidence">${this.getConfidenceText(analysis)}</span>
+                    <span class="finding-confidence">${this.getConfidenceText(analysis, confidenceScore)}</span>
                 </div>
+                
+                ${metadataBadges.length > 0 ? `
+                <div class="finding-metadata">
+                    ${metadataBadges.join('')}
+                </div>
+                ` : ''}
+                
+                ${analysis.exploitation_scenario ? `
+                <div class="exploitation-scenario">
+                    <div class="scenario-label"><i class="fas fa-exclamation-triangle"></i> Exploitation Scenario</div>
+                    <p>${this.escapeHtml(analysis.exploitation_scenario)}</p>
+                </div>
+                ` : ''}
                 
                 <div class="finding-content">
                     ${diffCode ? `
@@ -555,7 +671,14 @@
             return titleMap[codeBlockType] || 'Code Analysis Finding';
         },
         
-        getConfidenceText: function(analysis) {
+        getConfidenceText: function(analysis, confidenceScore) {
+            if (confidenceScore !== null && confidenceScore !== undefined) {
+                const percentage = Math.round(confidenceScore * 100);
+                if (percentage >= 90) return `${percentage}% confidence`;
+                if (percentage >= 70) return `${percentage}% confidence`;
+                if (percentage >= 50) return `${percentage}% confidence`;
+                return `${percentage}% confidence`;
+            }
             return "High confidence";
         },
         

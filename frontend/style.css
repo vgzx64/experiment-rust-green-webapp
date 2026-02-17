@@ -1566,3 +1566,257 @@ body {
     from { transform: translateX(0); opacity: 1; }
     to { transform: translateX(100%); opacity: 0; }
 }
+
+/* SAST Verification Section */
+.sast-verification {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+    box-shadow: var(--shadow);
+}
+
+.sast-verification h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: var(--space-md);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.sast-verification h3 i {
+    color: var(--primary);
+}
+
+.verification-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+}
+
+@media (max-width: 768px) {
+    .verification-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .verification-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.verification-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    padding: var(--space-sm);
+    background-color: var(--bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.verification-label {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.verification-value {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.verification-value.status-pending {
+    color: var(--warning);
+}
+
+.verification-value.status-passed {
+    color: var(--success);
+}
+
+.verification-value.status-failed {
+    color: var(--danger);
+}
+
+.verification-value.status-improved {
+    color: var(--success);
+}
+
+.verification-value.status-degraded {
+    color: var(--danger);
+}
+
+.verification-value.status-no_change {
+    color: var(--text-light);
+}
+
+.verification-value.score-high {
+    color: var(--success);
+}
+
+.verification-value.score-medium {
+    color: var(--info);
+}
+
+.verification-value.score-low {
+    color: var(--warning);
+}
+
+.verification-value.score-critical {
+    color: var(--danger);
+}
+
+.verification-notes {
+    margin-top: var(--space-md);
+    padding: var(--space-md);
+    background-color: var(--bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+.verification-notes h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: var(--space-sm);
+}
+
+.verification-notes pre {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
+}
+
+/* Finding Metadata Badges */
+.finding-metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
+    border-bottom: 1px solid var(--border);
+}
+
+.metadata-badge {
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.metadata-badge.cwe {
+    background-color: rgba(229, 62, 62, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(229, 62, 62, 0.2);
+}
+
+.metadata-badge.owasp {
+    background-color: rgba(49, 130, 206, 0.1);
+    color: var(--info);
+    border: 1px solid rgba(49, 130, 206, 0.2);
+}
+
+.metadata-badge.risk {
+    text-transform: uppercase;
+}
+
+.metadata-badge.risk-low {
+    background-color: rgba(56, 161, 105, 0.1);
+    color: var(--success);
+    border: 1px solid rgba(56, 161, 105, 0.2);
+}
+
+.metadata-badge.risk-medium {
+    background-color: rgba(214, 158, 46, 0.1);
+    color: var(--warning);
+    border: 1px solid rgba(214, 158, 46, 0.2);
+}
+
+.metadata-badge.risk-high {
+    background-color: rgba(229, 62, 62, 0.1);
+    color: var(--danger);
+    border: 1px solid rgba(229, 62, 62, 0.2);
+}
+
+.metadata-badge.risk-critical {
+    background-color: rgba(123, 52, 30, 0.1);
+    color: #7b341e;
+    border: 1px solid rgba(123, 52, 30, 0.2);
+}
+
+.metadata-badge.risk-unknown {
+    background-color: rgba(113, 128, 150, 0.1);
+    color: var(--secondary);
+    border: 1px solid rgba(113, 128, 150, 0.2);
+}
+
+/* Exploitation Scenario */
+.exploitation-scenario {
+    background-color: rgba(229, 62, 62, 0.05);
+    border: 1px solid rgba(229, 62, 62, 0.2);
+    border-radius: var(--radius);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.scenario-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--danger);
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.exploitation-scenario p {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text);
+    margin: 0;
+}
+
+/* Risk-based Finding Card Styles */
+.finding-card.risk-low {
+    border-left-color: var(--success);
+}
+
+.finding-card.risk-medium {
+    border-left-color: var(--warning);
+}
+
+.finding-card.risk-high {
+    border-left-color: var(--danger);
+}
+
+.finding-card.risk-critical {
+    border-left-color: #7b341e;
+    background-color: rgba(123, 52, 30, 0.02);
+}
+
+.finding-card.risk-unknown {
+    border-left-color: var(--secondary);
+}
+
+/* Diff Code Block */
+.code-block.diff {
+    background-color: rgba(49, 130, 206, 0.05);
+    border-color: rgba(49, 130, 206, 0.2);
+}
+
+.code-block.diff .code-label {
+    color: var(--info);
+}
