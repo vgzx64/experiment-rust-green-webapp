@@ -93,8 +93,8 @@ class AnalysisWorker:
                     return
                 
                 # Update status to processing
-                session.status = SessionStatus.PROCESSING.value 
-                session.progress = 10 
+                session.status = SessionStatus.PROCESSING.value  # type: ignore
+                session.progress = 10  # type: ignore
                 await db.commit()
                 
                 # Get code for analysis
@@ -134,16 +134,16 @@ class AnalysisWorker:
                     is_multi_file = bool(files_data)  # True if this is a Git session with multiple files
                     analyzed_blocks = await self._generate_llm_analysis(code_to_analyze, files_data, is_multi_file)
                 
-                session.progress = 90 
+                session.progress = 90  # type: ignore
                 await db.commit()
                 
                 # Save results to database
                 await self._save_results(db, session, analyzed_blocks, use_llm=llm_available)
                 
                 # Mark as completed
-                session.status = SessionStatus.COMPLETED.value 
-                session.progress = 100 
-                session.completed_at = datetime.utcnow() 
+                session.status = SessionStatus.COMPLETED.value  # type: ignore
+                session.progress = 100  # type: ignore
+                session.completed_at = datetime.utcnow()  # type: ignore
                 await db.commit()
                 
                 logger.info(f"Session {session_id} analysis completed")
@@ -159,8 +159,8 @@ class AnalysisWorker:
                     )
                     session_to_update = result.scalar_one_or_none()
                     if session_to_update:
-                        session_to_update.status = SessionStatus.FAILED.value 
-                        session_to_update.error_message = str(e) 
+                        session_to_update.status = SessionStatus.FAILED.value  # type: ignore
+                        session_to_update.error_message = str(e)  # type: ignore
                         await db.commit()
                 except Exception as update_error:
                     logger.error(f"Failed to update session error status: {update_error}")
