@@ -1,8 +1,9 @@
-from sqlalchemy import Column, String, DateTime, Enum as SQLAEnum, Text, Integer
+from sqlalchemy import Column, String, DateTime, Enum as SQLAEnum, Text, Integer, JSON
 from sqlalchemy.orm import relationship
 import uuid
 from datetime import datetime
 from enum import Enum as PyEnum
+from typing import Optional, List
 
 from app.database import Base
 
@@ -18,6 +19,8 @@ class Session(Base):
     
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     orig_location = Column(Text, nullable=True)  # Git URL or None for file submission
+    git_ref = Column(String(255), nullable=True)  # Branch/tag/commit for Git repos
+    selected_files = Column(JSON, nullable=True)  # List of file paths to analyze
     status = Column(SQLAEnum(SessionStatus, values_callable=lambda obj: [e.value for e in obj]), default=SessionStatus.PENDING)
     progress = Column(Integer, default=0)  # 0-100 percentage
     

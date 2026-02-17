@@ -1,8 +1,9 @@
 import asyncio
 import logging
-from typing import Optional
+from typing import Optional, Dict, List
 import json
 from datetime import datetime
+from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import AsyncSessionLocal
@@ -10,6 +11,7 @@ from app.models.session import Session, SessionStatus
 from app.models.code_block import CodeBlock
 from app.models.analysis import Analysis, CodeBlockType, RiskLevel
 from app.services.file_storage_service import FileStorageService
+from app.services.git_service import git_service, GitServiceError
 from app.config.llm_config import llm_config
 
 logger = logging.getLogger(__name__)
@@ -97,6 +99,7 @@ class AnalysisWorker:
                 
                 # Get code for analysis
                 code_to_analyze = ""
+                files_data: Dict[str, str] = {}  # For Git sessions: file_path -> content
                 
                 # Check if session has uploaded code
                 if self.file_storage.session_has_uploaded_code(session_id):
@@ -104,11 +107,18 @@ class AnalysisWorker:
                     if code_content:
                         code_to_analyze = code_content
                     logger.info(f"Using uploaded code for session {session_id}, {len(code_to_analyze)} chars")
+                    
                 elif session.orig_location is not None:
-                    # Git URL - not implemented yet
-                    error_msg = f"Git analysis not implemented yet. URL: {session.orig_location}"
-                    logger.error(error_msg)
-                    raise NotImplementedError(error_msg)
+                    # Git URL - process Git repository
+                    logger.info(f"Processing Git repository: {session.orig_location}")
+                    code_to_analyze, files_data = await self._process_git_session(
+                        session_id, 
+                        session.orig_location, 
+                        session.git_ref,
+                        session.selected_files
+                    )
+                    logger.info(f"Git session {session_id}: {len(files_data)} files, {len(code_to_analyze)} total chars")
+                    
                 else:
                     # Should not happen due to validation
                     error_msg = f"Session {session_id} has no code or git URL"
@@ -119,8 +129,10 @@ class AnalysisWorker:
                 logger.info(f"Generating analysis for session {session_id}")
                 
                 llm_available = bool(self.use_llm and self.llm_service)
+                analyzed_blocks = []
                 if llm_available:
-                    analyzed_blocks = await self._generate_llm_analysis(code_to_analyze)
+                    is_multi_file = bool(files_data)  # True if this is a Git session with multiple files
+                    analyzed_blocks = await self._generate_llm_analysis(code_to_analyze, files_data, is_multi_file)
                 
                 session.progress = 90 
                 await db.commit()
@@ -154,15 +166,78 @@ class AnalysisWorker:
                     logger.error(f"Failed to update session error status: {update_error}")
     
     
-    async def _generate_llm_analysis(self, code: str):
-        """Generate enhanced analysis using LLM."""
+    async def _process_git_session(
+        self,
+        session_id: str,
+        git_url: str,
+        git_ref: str,
+        selected_files: Optional[List[str]] = None
+    ) -> tuple[str, Dict[str, str]]:
+        """Process a Git repository session.
+        
+        Args:
+            session_id: Session ID
+            git_url: Git repository URL
+            git_ref: Branch/tag/commit to checkout
+            selected_files: List of files to analyze (or None for all .rs files)
+            
+        Returns:
+            Tuple of (combined_code, files_dict)
+        """
+        repo_path = git_service.get_repo_path(session_id)
+        
+        try:
+            # Shallow clone the repository
+            await git_service.shallow_clone(git_url, repo_path, git_ref)
+            
+            # Get list of files to analyze
+            if selected_files:
+                files_to_analyze = selected_files
+            else:
+                # Get all Rust files
+                files_to_analyze = await git_service.list_rust_files(repo_path)
+            
+            if not files_to_analyze:
+                raise ValueError(f"No Rust files found in repository")
+            
+            # Read file contents
+            files_data = git_service.read_files(repo_path, files_to_analyze)
+            
+            if not files_data:
+                raise ValueError(f"Could not read any files from repository")
+            
+            # Combine all files into one code block for LLM analysis
+            # Each file is marked with its path for context
+            combined_parts = []
+            for file_path, content in files_data.items():
+                combined_parts.append(f"// === FILE: {file_path} ===\n{content}")
+            
+            combined_code = "\n\n".join(combined_parts)
+            
+            return combined_code, files_data
+            
+        except GitServiceError as e:
+            logger.error(f"Git service error for session {session_id}: {e}")
+            raise ValueError(f"Failed to access Git repository: {e}")
+    
+    async def _generate_llm_analysis(self, code: str, files_data: Dict[str, str] = None, is_multi_file: bool = False):
+        """Generate enhanced analysis using LLM.
+        
+        Args:
+            code: Combined code to analyze
+            files_data: Optional dict of file_path -> content for multi-file context
+            is_multi_file: Whether the code is from multiple files
+            
+        Returns:
+            List of analyzed blocks
+        """
         try:
             if not self.llm_service:
                 logger.warning("LLM service not available, falling back to mock analysis")
                 return []
             
-            logger.info("Starting LLM analysis pipeline")
-            llm_results = await self.llm_service.complete_analysis_pipeline(code)
+            logger.info(f"Starting LLM analysis pipeline (multi_file={is_multi_file})")
+            llm_results = await self.llm_service.complete_analysis_pipeline(code, is_multi_file=is_multi_file)
             
             vulnerability_analysis = llm_results.get("vulnerability_analysis", {})
             remediation = llm_results.get("remediation")

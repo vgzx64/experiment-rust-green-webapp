@@ -99,10 +99,15 @@ class LLMService:
             logger.error(f"Unexpected error in LLM call: {e}")
             raise
     
-    async def analyze_vulnerability(self, code: str, context: str = "") -> Dict[str, Any]:
+    async def analyze_vulnerability(self, code: str, context: str = "", is_multi_file: bool = False) -> Dict[str, Any]:
         """
         Analyze Rust code for vulnerabilities using LLM.
         
+        Args:
+            code: Rust code to analyze (may be combined from multiple files)
+            context: Additional context for analysis
+            is_multi_file: Whether the code is from multiple files
+            
         Returns structured analysis including:
         - vulnerability_type
         - cwe_id
@@ -112,6 +117,7 @@ class LLMService:
         - vulnerability_description
         - exploitation_scenario
         - line_numbers
+        - affected_file (for multi-file analysis)
         """
         # Check if LLM client is available
         if not self.client:
@@ -125,42 +131,84 @@ class LLMService:
                 "vulnerability_description": "LLM analysis disabled (no API key configured)",
                 "exploitation_scenario": None,
                 "line_numbers": [],
+                "affected_file": None,
                 "llm_metadata": {"disabled": True, "reason": "no_api_key"}
             }
         
-        system_prompt = """You are a security expert specializing in Rust code analysis.
-        Analyze the provided Rust code for security vulnerabilities.
-        Return your analysis in JSON format with the following structure:
-        {
-            "vulnerability_type": "Description of vulnerability",
-            "cwe_id": "CWE-XXX",
-            "owasp_category": "A1: Injection",
-            "risk_level": "low|medium|high|critical",
-            "confidence_score": 0.95,
-            "vulnerability_description": "Detailed explanation of the vulnerability",
-            "exploitation_scenario": "How attackers could exploit this vulnerability",
-            "line_numbers": [start_line, end_line]
-        }
+        # Enhanced system prompt for multi-file analysis
+        if is_multi_file:
+            system_prompt = """You are a security expert specializing in Rust code analysis.
+            Analyze the provided Rust code for security vulnerabilities. The code may contain multiple files,
+            each marked with '// === FILE: <path> ===' headers.
+            
+            Return your analysis in JSON format with the following structure:
+            {
+                "vulnerability_type": "Description of vulnerability",
+                "cwe_id": "CWE-XXX",
+                "owasp_category": "A1: Injection",
+                "risk_level": "low|medium|high|critical",
+                "confidence_score": 0.95,
+                "vulnerability_description": "Detailed explanation of the vulnerability",
+                "exploitation_scenario": "How attackers could exploit this vulnerability",
+                "line_numbers": [start_line, end_line],
+                "affected_file": "path/to/file.rs"
+            }
+            
+            When analyzing multiple files:
+            - Consider cross-file dependencies and interactions
+            - Identify which file contains the vulnerability
+            - Note if the vulnerability spans multiple files
+            
+            If no vulnerability is found, return:
+            {
+                "vulnerability_type": "None",
+                "cwe_id": null,
+                "owasp_category": null,
+                "risk_level": null,
+                "confidence_score": 1.0,
+                "vulnerability_description": "No security vulnerabilities detected",
+                "exploitation_scenario": null,
+                "line_numbers": [],
+                "affected_file": null
+            }
+            
+            Be specific, technical, and concise in your analysis."""
+        else:
+            system_prompt = """You are a security expert specializing in Rust code analysis.
+            Analyze the provided Rust code for security vulnerabilities.
+            Return your analysis in JSON format with the following structure:
+            {
+                "vulnerability_type": "Description of vulnerability",
+                "cwe_id": "CWE-XXX",
+                "owasp_category": "A1: Injection",
+                "risk_level": "low|medium|high|critical",
+                "confidence_score": 0.95,
+                "vulnerability_description": "Detailed explanation of the vulnerability",
+                "exploitation_scenario": "How attackers could exploit this vulnerability",
+                "line_numbers": [start_line, end_line]
+            }
+            
+            If no vulnerability is found, return:
+            {
+                "vulnerability_type": "None",
+                "cwe_id": null,
+                "owasp_category": null,
+                "risk_level": null,
+                "confidence_score": 1.0,
+                "vulnerability_description": "No security vulnerabilities detected",
+                "exploitation_scenario": null,
+                "line_numbers": []
+            }
+            
+            Be specific, technical, and concise in your analysis."""
         
-        If no vulnerability is found, return:
-        {
-            "vulnerability_type": "None",
-            "cwe_id": null,
-            "owasp_category": null,
-            "risk_level": null,
-            "confidence_score": 1.0,
-            "vulnerability_description": "No security vulnerabilities detected",
-            "exploitation_scenario": null,
-            "line_numbers": []
-        }
-        
-        Be specific, technical, and concise in your analysis."""
-        
+        file_context = "This analysis contains multiple files from a Git repository." if is_multi_file else ""
         prompt = f"""Analyze this Rust code for security vulnerabilities:
         
         {code}
         
         {f"Additional context: {context}" if context else ""}
+        {file_context}
         
         Provide concise analysis in the specified JSON format."""
         
@@ -257,17 +305,21 @@ class LLMService:
                 "llm_metadata": metadata
             }
     
-    async def complete_analysis_pipeline(self, code: str) -> Dict[str, Any]:
+    async def complete_analysis_pipeline(self, code: str, is_multi_file: bool = False) -> Dict[str, Any]:
         """
         Complete analysis pipeline: analyze → remediate.
         
+        Args:
+            code: Rust code to analyze (may be combined from multiple files)
+            is_multi_file: Whether the code is from multiple files
+            
         Returns comprehensive analysis results.
         """
-        logger.info("Starting LLM analysis pipeline")
+        logger.info(f"Starting LLM analysis pipeline (multi_file={is_multi_file})")
         
         # Step 1: Vulnerability analysis
         logger.info("Step 1: Vulnerability analysis")
-        vulnerability_analysis = await self.analyze_vulnerability(code)
+        vulnerability_analysis = await self.analyze_vulnerability(code, is_multi_file=is_multi_file)
         
         # If no vulnerability found, return early
         if vulnerability_analysis.get("vulnerability_type") == "None":

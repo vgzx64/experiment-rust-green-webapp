@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from typing import Optional
+from typing import Optional, List
 
 from app.models.session import Session, SessionStatus
 from app.services.file_storage_service import FileStorageService
@@ -15,13 +15,17 @@ class SessionService:
     async def create_session(
         self, 
         orig_location: Optional[str] = None,
-        code: Optional[str] = None
+        code: Optional[str] = None,
+        git_ref: Optional[str] = None,
+        selected_files: Optional[List[str]] = None
     ) -> Session:
         """Create a new analysis session.
         
         Args:
             orig_location: Git URL for repository analysis
             code: Raw Rust code content for direct analysis
+            git_ref: Branch/tag/commit for Git repos (required if orig_location provided)
+            selected_files: List of file paths to analyze from repo
             
         Returns:
             Session object
@@ -30,9 +34,14 @@ class SessionService:
         if not orig_location and not code:
             raise ValueError("Either orig_location or code must be provided")
         
+        if orig_location and not git_ref:
+            raise ValueError("git_ref is required when orig_location is provided")
+        
         # Create session in database
         session = Session(
             orig_location=orig_location,
+            git_ref=git_ref,
+            selected_files=selected_files,
             status=SessionStatus.PENDING,
             progress=0
         )

@@ -7,7 +7,7 @@ import logging
 from app.database import engine, Base
 from app.services.session_service import SessionService
 from app.services.pipeline.analysis_worker import AnalysisWorker
-from app.api.v1 import sessions
+from app.api.v1 import sessions, repos
 
 # Configure logging
 logging.basicConfig(
@@ -88,6 +88,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(sessions.router, prefix="/api/v1", tags=["sessions"])
+app.include_router(repos.router, prefix="/api/v1", tags=["repos"])
 
 @app.get("/")
 async def root():

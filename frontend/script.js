@@ -41,6 +41,8 @@
         initInputOptions: function() {
             const optionButtons = document.querySelectorAll('.option-btn');
             const codeInput = document.getElementById('rust-code');
+            const gitSection = document.getElementById('git-input-section');
+            const codeContainer = document.getElementById('code-input-container');
             
             optionButtons.forEach(button => {
                 button.addEventListener('click', () => {
@@ -48,38 +50,213 @@
                     optionButtons.forEach(btn => btn.classList.remove('active'));
                     button.classList.add('active');
                     
-                    // Update input placeholder based on selection
-                    const option = button.textContent.toLowerCase();
-                    this.updateInputForOption(option, codeInput);
+                    // Get mode from data attribute
+                    const mode = button.getAttribute('data-mode');
+                    this.switchInputMode(mode, codeInput, gitSection, codeContainer);
                 });
             });
+            
+            // Initialize Git-specific handlers
+            this.initGitHandlers();
         },
         
-        updateInputForOption: function(option, codeInput) {
-            const placeholders = {
-                'paste': 'Paste your Rust code here...',
-                'upload': 'File will be uploaded and displayed here...',
-                'git': 'Git repository contents will be displayed here...'
+        switchInputMode: function(mode, codeInput, gitSection, codeContainer) {
+            // Hide/show appropriate sections
+            if (mode === 'git') {
+                gitSection.style.display = 'block';
+                codeContainer.style.display = 'none';
+                this.currentMode = 'git';
+            } else {
+                gitSection.style.display = 'none';
+                codeContainer.style.display = 'block';
+                this.currentMode = mode;
+                
+                const placeholders = {
+                    'paste': 'Paste your Rust code here...',
+                    'upload': 'File will be uploaded and displayed here...'
+                };
+                codeInput.placeholder = placeholders[mode] || placeholders.paste;
+            }
+        },
+        
+        // ==================== Git Handlers ====================
+        initGitHandlers: function() {
+            const gitUrlInput = document.getElementById('git-url');
+            const fetchRefsBtn = document.getElementById('fetch-refs-btn');
+            const gitRefSelect = document.getElementById('git-ref');
+            const fetchFilesBtn = document.getElementById('fetch-files-btn');
+            const gitFilesSection = document.getElementById('git-files-section');
+            
+            // Git state
+            this.gitState = {
+                url: null,
+                refs: null,
+                selectedRef: null,
+                files: [],
+                selectedFiles: []
             };
             
-            const infoTexts = {
-                'paste': '<i class="fas fa-ruler-combined"></i> 8 lines<span><i class="fas fa-exclamation-triangle"></i> 1 unsafe block</span>',
-                'upload': '<i class="fas fa-file-upload"></i> No file selected<span><i class="fas fa-info-circle"></i> Upload .rs or .zip</span>',
-                'git': '<i class="fab fa-git"></i> Enter Git URL<span><i class="fas fa-branch"></i> Supports GitHub, GitLab</span>'
-            };
-            
-            codeInput.placeholder = placeholders[option] || placeholders.paste;
-            
-            // Update info display
-            const inputInfo = document.querySelector('.input-info');
-            if (inputInfo) {
-                inputInfo.innerHTML = infoTexts[option] || infoTexts.paste;
+            // Enable fetch button when URL is entered
+            if (gitUrlInput) {
+                gitUrlInput.addEventListener('input', () => {
+                    fetchRefsBtn.disabled = !gitUrlInput.value.trim();
+                });
             }
             
-            // For demo purposes, show a message
-            if (option !== 'paste') {
-                this.showMessage(`Switched to ${option} mode. In a real implementation, this would handle ${option} functionality.`);
+            // Fetch refs button
+            if (fetchRefsBtn) {
+                fetchRefsBtn.addEventListener('click', () => this.fetchGitRefs());
             }
+            
+            // Ref selection change
+            if (gitRefSelect) {
+                gitRefSelect.addEventListener('change', () => {
+                    this.gitState.selectedRef = gitRefSelect.value;
+                    fetchFilesBtn.disabled = !gitRefSelect.value;
+                });
+            }
+            
+            // Fetch files button
+            if (fetchFilesBtn) {
+                fetchFilesBtn.addEventListener('click', () => this.fetchGitFiles());
+            }
+        },
+        
+        fetchGitRefs: async function() {
+            const gitUrlInput = document.getElementById('git-url');
+            const gitRefSelect = document.getElementById('git-ref');
+            const fetchRefsBtn = document.getElementById('fetch-refs-btn');
+            const gitFilesSection = document.getElementById('git-files-section');
+            
+            const gitUrl = gitUrlInput.value.trim();
+            if (!gitUrl) return;
+            
+            // Show loading state
+            fetchRefsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
+            fetchRefsBtn.disabled = true;
+            
+            try {
+                const response = await this.apiRequest(`/repos/refs?git_url=${encodeURIComponent(gitUrl)}`);
+                
+                this.gitState.url = gitUrl;
+                this.gitState.refs = response;
+                
+                // Populate select
+                gitRefSelect.innerHTML = '<option value="">-- Select branch or tag --</option>';
+                
+                // Add branches
+                if (response.branches && response.branches.length > 0) {
+                    const branchGroup = document.createElement('optgroup');
+                    branchGroup.label = 'Branches';
+                    response.branches.forEach(branch => {
+                        const option = document.createElement('option');
+                        option.value = branch;
+                        option.textContent = `🌿 ${branch}`;
+                        if (branch === response.default_branch) {
+                            option.textContent += ' (default)';
+                            option.selected = true;
+                        }
+                        branchGroup.appendChild(option);
+                    });
+                    gitRefSelect.appendChild(branchGroup);
+                }
+                
+                // Add tags
+                if (response.tags && response.tags.length > 0) {
+                    const tagGroup = document.createElement('optgroup');
+                    tagGroup.label = 'Tags';
+                    response.tags.forEach(tag => {
+                        const option = document.createElement('option');
+                        option.value = tag;
+                        option.textContent = `🏷️ ${tag}`;
+                        tagGroup.appendChild(option);
+                    });
+                    gitRefSelect.appendChild(tagGroup);
+                }
+                
+                gitRefSelect.disabled = false;
+                gitFilesSection.style.display = 'block';
+                
+                this.showMessage(`Found ${response.branches.length} branches and ${response.tags.length} tags`, 'success');
+                
+            } catch (error) {
+                this.showMessage(`Failed to fetch refs: ${error.message}`, 'error');
+            } finally {
+                fetchRefsBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Fetch Refs';
+                fetchRefsBtn.disabled = false;
+            }
+        },
+        
+        fetchGitFiles: async function() {
+            const gitRefSelect = document.getElementById('git-ref');
+            const fetchFilesBtn = document.getElementById('fetch-files-btn');
+            const fileList = document.getElementById('git-file-list');
+            
+            const gitRef = gitRefSelect.value;
+            if (!gitRef || !this.gitState.url) return;
+            
+            // Show loading state
+            fetchFilesBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            fetchFilesBtn.disabled = true;
+            
+            try {
+                const response = await this.apiRequest(`/repos/tree?git_url=${encodeURIComponent(this.gitState.url)}&git_ref=${encodeURIComponent(gitRef)}`);
+                
+                this.gitState.files = response.files;
+                this.gitState.selectedRef = gitRef;
+                
+                // Populate file list
+                fileList.innerHTML = '';
+                
+                if (response.files.length === 0) {
+                    fileList.innerHTML = '<p class="no-files">No Rust files found in repository</p>';
+                } else {
+                    // Add select all checkbox
+                    const selectAllLabel = document.createElement('label');
+                    selectAllLabel.className = 'file-select-all';
+                    selectAllLabel.innerHTML = `
+                        <input type="checkbox" id="select-all-files" checked />
+                        <span>Select All (${response.files.length} files)</span>
+                    `;
+                    fileList.appendChild(selectAllLabel);
+                    
+                    // Add individual file checkboxes
+                    response.files.forEach(file => {
+                        const fileLabel = document.createElement('label');
+                        fileLabel.className = 'file-item';
+                        fileLabel.innerHTML = `
+                            <input type="checkbox" value="${file}" checked />
+                            <i class="fas fa-file-code"></i>
+                            <span>${file}</span>
+                        `;
+                        fileList.appendChild(fileLabel);
+                    });
+                    
+                    // Select all handler
+                    const selectAll = document.getElementById('select-all-files');
+                    if (selectAll) {
+                        selectAll.addEventListener('change', (e) => {
+                            fileList.querySelectorAll('.file-item input').forEach(cb => {
+                                cb.checked = e.target.checked;
+                            });
+                        });
+                    }
+                }
+                
+                this.showMessage(`Found ${response.files.length} Rust files`, 'success');
+                
+            } catch (error) {
+                this.showMessage(`Failed to fetch files: ${error.message}`, 'error');
+            } finally {
+                fetchFilesBtn.innerHTML = '<i class="fas fa-list"></i> List Files';
+                fetchFilesBtn.disabled = false;
+            }
+        },
+        
+        getSelectedFiles: function() {
+            const fileList = document.getElementById('git-file-list');
+            const checkboxes = fileList.querySelectorAll('.file-item input:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
         },
         
         // ==================== Code Input ====================
@@ -176,9 +353,15 @@
         
         // ==================== Analysis Flow ====================
         startAnalysis: async function() {
-            const codeInput = document.getElementById('rust-code');
             const analyzeBtn = document.getElementById('analyze-btn');
             
+            // Check current mode
+            if (this.currentMode === 'git') {
+                return await this.startGitAnalysis();
+            }
+            
+            // Code paste mode
+            const codeInput = document.getElementById('rust-code');
             const code = codeInput.value.trim();
             if (!code) {
                 this.showMessage('Please enter some Rust code to analyze.', 'warning');
@@ -215,6 +398,57 @@
                 analyzeBtn.disabled = false;
                 if (quickScanBtn) quickScanBtn.disabled = false;
                 if (clearBtn) clearBtn.disabled = false;
+            }
+        },
+        
+        startGitAnalysis: async function() {
+            const analyzeBtn = document.getElementById('analyze-btn');
+            
+            // Validate Git state
+            if (!this.gitState.url) {
+                this.showMessage('Please enter a Git repository URL.', 'warning');
+                return;
+            }
+            
+            if (!this.gitState.selectedRef) {
+                this.showMessage('Please select a branch or tag.', 'warning');
+                return;
+            }
+            
+            const selectedFiles = this.getSelectedFiles();
+            if (selectedFiles.length === 0) {
+                this.showMessage('Please select at least one file to analyze.', 'warning');
+                return;
+            }
+            
+            // Show loading state
+            const originalText = analyzeBtn.innerHTML;
+            analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cloning & Analyzing...';
+            analyzeBtn.disabled = true;
+            
+            try {
+                // Create session with Git data
+                const response = await this.apiRequest('/sessions', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        orig_location: this.gitState.url,
+                        git_ref: this.gitState.selectedRef,
+                        selected_files: selectedFiles
+                    })
+                });
+                
+                this.currentSessionId = response.id;
+                
+                // Show initial status
+                this.showMessage(`Git analysis started! Session ID: ${response.id.substring(0, 8)}...`, 'success');
+                
+                // Start polling for status updates
+                this.startPolling(response.id);
+                
+            } catch (error) {
+                this.showMessage(`Failed to start Git analysis: ${error.message}`, 'error');
+                analyzeBtn.innerHTML = originalText;
+                analyzeBtn.disabled = false;
             }
         },
         

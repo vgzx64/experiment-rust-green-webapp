@@ -45,13 +45,39 @@
                 <div class="section-header">
                     <h3><i class="fas fa-code"></i> Rust Code Input</h3>
                     <div class="input-options">
-                        <button class="option-btn active">Paste</button>
-                        <button class="option-btn">Upload</button>
-                        <button class="option-btn">Git</button>
+                        <button class="option-btn active" data-mode="paste">Paste</button>
+                        <button class="option-btn" data-mode="upload">Upload</button>
+                        <button class="option-btn" data-mode="git">Git</button>
                     </div>
                 </div>
                 
-                <div class="code-input-container">
+                <!-- Git Input Section (hidden by default) -->
+                <div class="git-input-container" id="git-input-section" style="display: none;">
+                    <div class="git-url-input">
+                        <label for="git-url"><i class="fas fa-link"></i> Repository URL</label>
+                        <input type="text" id="git-url" placeholder="https://github.com/user/repo" />
+                    </div>
+                    <div class="git-ref-input">
+                        <label for="git-ref"><i class="fas fa-code-branch"></i> Branch / Tag / Commit</label>
+                        <select id="git-ref" disabled>
+                            <option value="">-- Enter URL and fetch refs --</option>
+                        </select>
+                        <button class="secondary-btn" id="fetch-refs-btn" disabled>
+                            <i class="fas fa-sync-alt"></i> Fetch Refs
+                        </button>
+                    </div>
+                    <div class="git-files-section" id="git-files-section" style="display: none;">
+                        <label><i class="fas fa-file-code"></i> Select Files to Analyze</label>
+                        <div class="file-list" id="git-file-list">
+                            <!-- Files will be populated here -->
+                        </div>
+                        <button class="secondary-btn" id="fetch-files-btn" disabled>
+                            <i class="fas fa-list"></i> List Files
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="code-input-container" id="code-input-container">
                     <textarea class="code-input" id="rust-code" placeholder="Paste your Rust code here...">// Example unsafe Rust code
 fn main() {
     let raw_ptr: *const i32 = &10 as *const i32;

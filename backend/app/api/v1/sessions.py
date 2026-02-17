@@ -135,7 +135,9 @@ async def create_session(
         session_service = SessionService(db)
         session = await session_service.create_session(
             orig_location=session_data.orig_location,
-            code=session_data.code
+            code=session_data.code,
+            git_ref=session_data.git_ref,
+            selected_files=session_data.selected_files
         )
         
         # Enqueue for processing
