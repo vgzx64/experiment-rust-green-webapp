@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Optional
 from dotenv import load_dotenv, find_dotenv
 
@@ -42,9 +42,11 @@ class LLMConfig(BaseSettings):
     # Cost/token tracking
     enable_token_tracking: bool = True
     
-    class Config:
-        env_file = ".env"
-        env_prefix = "LLM_"
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_prefix="LLM_",
+        extra="ignore"
+    )
     
     def __init__(self, **kwargs):
         """Initialize configuration."""
