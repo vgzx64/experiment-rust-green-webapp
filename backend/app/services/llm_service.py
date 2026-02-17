@@ -99,7 +99,7 @@ class LLMService:
             logger.error(f"Unexpected error in LLM call: {e}")
             raise
     
-    async def analyze_vulnerability(self, code: str, context: str = "", is_multi_file: bool = False) -> Dict[str, Any]:
+    async def analyze_vulnerability(self, code: str, context: str = "", is_multi_file: bool = False, sast_context: str = "") -> Dict[str, Any]:
         """
         Analyze Rust code for vulnerabilities using LLM.
         
@@ -107,6 +107,7 @@ class LLMService:
             code: Rust code to analyze (may be combined from multiple files)
             context: Additional context for analysis
             is_multi_file: Whether the code is from multiple files
+            sast_context: SAST scan results to include in analysis
             
         Returns structured analysis including:
         - vulnerability_type
@@ -203,12 +204,24 @@ class LLMService:
             Be specific, technical, and concise in your analysis."""
         
         file_context = "This analysis contains multiple files from a Git repository." if is_multi_file else ""
+        
+        # Include SAST context if provided
+        sast_section = ""
+        if sast_context:
+            sast_section = f"""
+        
+        IMPORTANT - SAST Analysis Results:
+        {sast_context}
+        
+        Please consider these SAST findings in your analysis. The updated code should include fixes to the issues identified by SAST."""
+        
         prompt = f"""Analyze this Rust code for security vulnerabilities:
         
         {code}
         
         {f"Additional context: {context}" if context else ""}
         {file_context}
+        {sast_section}
         
         Provide concise analysis in the specified JSON format."""
         
@@ -305,13 +318,14 @@ class LLMService:
                 "llm_metadata": metadata
             }
     
-    async def complete_analysis_pipeline(self, code: str, is_multi_file: bool = False) -> Dict[str, Any]:
+    async def complete_analysis_pipeline(self, code: str, is_multi_file: bool = False, sast_context: str = "") -> Dict[str, Any]:
         """
         Complete analysis pipeline: analyze → remediate.
         
         Args:
             code: Rust code to analyze (may be combined from multiple files)
             is_multi_file: Whether the code is from multiple files
+            sast_context: SAST scan results to include in analysis
             
         Returns comprehensive analysis results.
         """
@@ -319,7 +333,7 @@ class LLMService:
         
         # Step 1: Vulnerability analysis
         logger.info("Step 1: Vulnerability analysis")
-        vulnerability_analysis = await self.analyze_vulnerability(code, is_multi_file=is_multi_file)
+        vulnerability_analysis = await self.analyze_vulnerability(code, is_multi_file=is_multi_file, sast_context=sast_context)
         
         # If no vulnerability found, return early
         if vulnerability_analysis.get("vulnerability_type") == "None":

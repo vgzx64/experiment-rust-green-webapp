@@ -34,6 +34,8 @@ class Session(Base):
     
     # Relationships
     analyses = relationship("Analysis", back_populates="session", cascade="all, delete-orphan")
+    sast_results = relationship("SastResult", back_populates="session", cascade="all, delete-orphan")
+    sast_verifications = relationship("SastVerificationResult", back_populates="session", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<Session(id={self.id}, status={self.status}, progress={self.progress}%)>"

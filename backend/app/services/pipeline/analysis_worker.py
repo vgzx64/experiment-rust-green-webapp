@@ -6,15 +6,21 @@ from datetime import datetime
 from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+
 from app.database import AsyncSessionLocal
 from app.models.session import Session, SessionStatus
 from app.models.code_block import CodeBlock
 from app.models.analysis import Analysis, CodeBlockType, RiskLevel
+from app.models.sast_result import SastReport, SastVerification
 from app.services.file_storage_service import FileStorageService
 from app.services.git_service import git_service, GitServiceError
+from app.services.sast_service import sast_service
 from app.config.llm_config import llm_config
+from app.config.sast_config import sast_config
 
 logger = logging.getLogger(__name__)
+
 
 class AnalysisWorker:
     """Worker that processes analysis jobs from the queue."""
@@ -39,6 +45,9 @@ class AnalysisWorker:
             except Exception as e:
                 logger.warning(f"Failed to initialize LLM service: {e}")
                 self.use_llm = False
+        
+        # SAST is enabled via config
+        self.use_sast = sast_config.enabled
         
     async def start(self):
         """Start the worker."""
@@ -78,11 +87,10 @@ class AnalysisWorker:
                 await asyncio.sleep(1)  # Prevent tight loop on errors
     
     async def _process_session(self, session_id: str):
-        """Process a single analysis session."""
+        """Process a single analysis session with SAST integration."""
         async with AsyncSessionLocal() as db:
             try:
                 # Get session from database
-                from sqlalchemy import select
                 result = await db.execute(
                     select(Session).where(Session.id == session_id)
                 )
@@ -94,12 +102,13 @@ class AnalysisWorker:
                 
                 # Update status to processing
                 session.status = SessionStatus.PROCESSING.value  # type: ignore
-                session.progress = 10  # type: ignore
+                session.progress = 5  # type: ignore
                 await db.commit()
                 
                 # Get code for analysis
                 code_to_analyze = ""
                 files_data: Dict[str, str] = {}  # For Git sessions: file_path -> content
+                repo_path = None
                 
                 # Check if session has uploaded code
                 if self.file_storage.session_has_uploaded_code(session_id):
@@ -111,7 +120,7 @@ class AnalysisWorker:
                 elif session.orig_location is not None:
                     # Git URL - process Git repository
                     logger.info(f"Processing Git repository: {session.orig_location}")
-                    code_to_analyze, files_data = await self._process_git_session(
+                    code_to_analyze, files_data, repo_path = await self._process_git_session(
                         session_id, 
                         session.orig_location, 
                         session.git_ref,
@@ -125,14 +134,88 @@ class AnalysisWorker:
                     logger.error(error_msg)
                     raise ValueError(error_msg)
                 
-                # Generate analysis
-                logger.info(f"Generating analysis for session {session_id}")
+                # ==================== SAST PHASE ====================
+                sast_reports_before: Dict[str, SastReport] = {}
+                sast_reports_after_auto: Dict[str, SastReport] = {}
+                sast_verification_auto: Optional[SastVerification] = None
+                
+                if self.use_sast and repo_path:
+                    session.progress = 10  # type: ignore
+                    await db.commit()
+                    
+                    # Run SAST pipeline:
+                    # 1. Initial scan
+                    # 2. Auto-fix phase (Clippy --fix, Semgrep --autofix)
+                    # 3. Post-auto-fix scan
+                    logger.info(f"Running SAST pipeline for session {session_id}")
+                    
+                    sast_reports_before, sast_reports_after_auto, sast_verification_auto = \
+                        await sast_service.run_sast_pipeline(repo_path, session_id, db)
+                    
+                    session.progress = 40  # type: ignore
+                    await db.commit()
+                    
+                    # Re-read files after auto-fixes
+                    if files_data and repo_path:
+                        files_data = git_service.read_files(
+                            repo_path, 
+                            list(files_data.keys())
+                        )
+                        # Rebuild combined code
+                        combined_parts = []
+                        for file_path, content in files_data.items():
+                            combined_parts.append(f"// === FILE: {file_path} ===\n{content}")
+                        code_to_analyze = "\n\n".join(combined_parts)
+                
+                # ==================== LLM ANALYSIS PHASE ====================
+                logger.info(f"Generating LLM analysis for session {session_id}")
+                
+                # Format SAST context for LLM
+                sast_context = ""
+                if sast_reports_after_auto:
+                    sast_context = sast_service.format_for_llm(sast_reports_after_auto)
+                    logger.info(f"Providing SAST context to LLM: {len(sast_context)} chars")
                 
                 llm_available = bool(self.use_llm and self.llm_service)
                 analyzed_blocks = []
                 if llm_available:
-                    is_multi_file = bool(files_data)  # True if this is a Git session with multiple files
-                    analyzed_blocks = await self._generate_llm_analysis(code_to_analyze, files_data, is_multi_file)
+                    is_multi_file = bool(files_data)
+                    analyzed_blocks = await self._generate_llm_analysis(
+                        code_to_analyze, 
+                        files_data, 
+                        is_multi_file,
+                        sast_context=sast_context
+                    )
+                
+                session.progress = 70  # type: ignore
+                await db.commit()
+                
+                # ==================== APPLY LLM FIXES ====================
+                # Apply LLM suggested fixes to files
+                if repo_path and analyzed_blocks:
+                    await self._apply_llm_fixes(repo_path, analyzed_blocks, files_data)
+                
+                session.progress = 80  # type: ignore
+                await db.commit()
+                
+                # ==================== SAST VERIFICATION PHASE ====================
+                if self.use_sast and repo_path and sast_reports_after_auto:
+                    logger.info(f"Running post-LLM SAST verification for session {session_id}")
+                    
+                    sast_verification_final = await sast_service.run_verification_scan(
+                        repo_path,
+                        session_id,
+                        db,
+                        sast_reports_after_auto
+                    )
+                    
+                    # Add verification info to analyzed blocks
+                    for block in analyzed_blocks:
+                        block["sast_verification"] = {
+                            "status": sast_verification_final.verification_status,
+                            "score": sast_verification_final.verification_score,
+                            "notes": sast_verification_final.verification_notes
+                        }
                 
                 session.progress = 90  # type: ignore
                 await db.commit()
@@ -153,7 +236,6 @@ class AnalysisWorker:
                 # Update session with error
                 try:
                     # Try to get session again to update error status
-                    from sqlalchemy import select
                     result = await db.execute(
                         select(Session).where(Session.id == session_id)
                     )
@@ -172,7 +254,7 @@ class AnalysisWorker:
         git_url: str,
         git_ref: str,
         selected_files: Optional[List[str]] = None
-    ) -> tuple[str, Dict[str, str]]:
+    ) -> tuple[str, Dict[str, str], str]:
         """Process a Git repository session.
         
         Args:
@@ -182,7 +264,7 @@ class AnalysisWorker:
             selected_files: List of files to analyze (or None for all .rs files)
             
         Returns:
-            Tuple of (combined_code, files_dict)
+            Tuple of (combined_code, files_dict, repo_path)
         """
         repo_path = git_service.get_repo_path(session_id)
         
@@ -214,19 +296,26 @@ class AnalysisWorker:
             
             combined_code = "\n\n".join(combined_parts)
             
-            return combined_code, files_data
+            return combined_code, files_data, repo_path
             
         except GitServiceError as e:
             logger.error(f"Git service error for session {session_id}: {e}")
             raise ValueError(f"Failed to access Git repository: {e}")
     
-    async def _generate_llm_analysis(self, code: str, files_data: Dict[str, str] = None, is_multi_file: bool = False):
-        """Generate enhanced analysis using LLM.
+    async def _generate_llm_analysis(
+        self, 
+        code: str, 
+        files_data: Dict[str, str] = None, 
+        is_multi_file: bool = False,
+        sast_context: str = ""
+    ):
+        """Generate enhanced analysis using LLM with SAST context.
         
         Args:
             code: Combined code to analyze
             files_data: Optional dict of file_path -> content for multi-file context
             is_multi_file: Whether the code is from multiple files
+            sast_context: Formatted SAST results to include in prompt
             
         Returns:
             List of analyzed blocks
@@ -237,7 +326,11 @@ class AnalysisWorker:
                 return []
             
             logger.info(f"Starting LLM analysis pipeline (multi_file={is_multi_file})")
-            llm_results = await self.llm_service.complete_analysis_pipeline(code, is_multi_file=is_multi_file)
+            llm_results = await self.llm_service.complete_analysis_pipeline(
+                code, 
+                is_multi_file=is_multi_file,
+                sast_context=sast_context
+            )
             
             vulnerability_analysis = llm_results.get("vulnerability_analysis", {})
             remediation = llm_results.get("remediation")
@@ -296,6 +389,53 @@ class AnalysisWorker:
             logger.error(f"LLM analysis failed: {e}", exc_info=True)
             logger.info("Falling back to mock analysis")
             return []
+    
+    async def _apply_llm_fixes(
+        self,
+        repo_path: str,
+        analyzed_blocks: List[dict],
+        files_data: Dict[str, str]
+    ):
+        """Apply LLM suggested fixes to files."""
+        for block in analyzed_blocks:
+            file_path = block.get("file_path")
+            suggestions = block.get("suggestions", [])
+            
+            if not file_path or not suggestions:
+                continue
+            
+            # Get the suggested fix
+            suggested_fix = suggestions[0] if suggestions else None
+            if not suggested_fix:
+                continue
+            
+            # Read the original file
+            full_path = Path(repo_path) / file_path
+            if not full_path.exists():
+                logger.warning(f"File not found for LLM fix: {file_path}")
+                continue
+            
+            try:
+                # Apply the fix
+                original_content = full_path.read_text()
+                line_start = block.get("line_start", 1)
+                line_end = block.get("line_end", line_start)
+                
+                # Replace the vulnerable lines with the fix
+                lines = original_content.split('\n')
+                new_lines = (
+                    lines[:line_start-1] + 
+                    suggested_fix.split('\n') + 
+                    lines[line_end:]
+                )
+                
+                new_content = '\n'.join(new_lines)
+                full_path.write_text(new_content)
+                
+                logger.info(f"Applied LLM fix to {file_path}")
+                
+            except Exception as e:
+                logger.error(f"Failed to apply LLM fix to {file_path}: {e}")
     
     async def _save_results(self, db: AsyncSession, session: Session, analyzed_blocks: list, use_llm: bool = False):
         """Save analysis results to database."""

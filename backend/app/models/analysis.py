@@ -50,6 +50,7 @@ class Analysis(Base):
     # Relationships
     session = relationship("Session", back_populates="analyses")
     code_block = relationship("CodeBlock", back_populates="analysis")
+    sast_verification = relationship("SastVerificationResult", back_populates="analysis")
     
     def __repr__(self):
         return f"<Analysis(id={self.id}, type={self.code_block_type}, cwe={self.cwe_id}, risk={self.risk_level})>"
