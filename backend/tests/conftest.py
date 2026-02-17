@@ -131,3 +131,102 @@ def mock_remediation_response() -> dict:
         "explanation": "Use Result type instead of unwrap() to handle errors gracefully",
         "compatibility_notes": "This is a breaking change as the function now returns a Result"
     }
+
+
+# ==================== Additional Fixtures ====================
+
+@pytest.fixture
+def mock_session():
+    """Create a mock Session object for testing."""
+    from app.models.session import Session, SessionStatus
+    session = Session()
+    session.id = "test-session-id"
+    session.orig_location = "https://github.com/user/repo"
+    session.git_ref = "main"
+    session.status = SessionStatus.COMPLETED
+    session.progress = 100
+    session.error_message = None
+    return session
+
+
+@pytest.fixture
+def mock_code_block():
+    """Create a mock CodeBlock object for testing."""
+    from app.models.code_block import CodeBlock
+    block = CodeBlock()
+    block.id = "test-block-id"
+    block.raw_code = "unsafe { *ptr }"
+    block.line_start = 10
+    block.line_end = 12
+    block.file_path = "src/main.rs"
+    return block
+
+
+@pytest.fixture
+def mock_analysis(mock_code_block):
+    """Create a mock Analysis object for testing."""
+    from app.models.analysis import Analysis, CodeBlockType, RiskLevel
+    analysis = Analysis()
+    analysis.id = "test-analysis-id"
+    analysis.session_id = "test-session-id"
+    analysis.code_block_id = "test-block-id"
+    analysis.code_block_type = CodeBlockType.REPLACEABLE
+    analysis.suggested_replacement = "safe_deref(ptr)"
+    analysis.cwe_id = "CWE-787"
+    analysis.owasp_category = "A1: Injection"
+    analysis.risk_level = RiskLevel.HIGH
+    analysis.confidence_score = 0.95
+    analysis.vulnerability_description = "Buffer overflow vulnerability"
+    analysis.exploitation_scenario = "Attacker can overwrite memory"
+    analysis.remediation_explanation = "Use safe bounds checking"
+    analysis.code_block = mock_code_block
+    return analysis
+
+
+@pytest.fixture
+def sample_buffer_overflow_code() -> str:
+    """Sample buffer overflow vulnerable code."""
+    return """
+fn vulnerable_copy(data: &[u8]) -> Vec<u8> {
+    let mut buffer = [0u8; 10];
+    unsafe {
+        std::ptr::copy_nonoverlapping(data.as_ptr(), buffer.as_mut_ptr(), data.len());
+    }
+    buffer.to_vec()
+}
+"""
+
+
+@pytest.fixture
+def sample_sql_injection_code() -> str:
+    """Sample SQL injection vulnerable code (conceptual for Rust)."""
+    return """
+fn query_user(conn: &mut sqlite::Connection, user_id: &str) -> Result<User, Error> {
+    let query = format!("SELECT * FROM users WHERE id = {}", user_id);
+    conn.execute(query)
+}
+"""
+
+
+@pytest.fixture
+def sample_unsafe_code() -> str:
+    """Sample code with unsafe block."""
+    return """
+fn unsafe_deref(ptr: *const i32) -> i32 {
+    unsafe { *ptr }
+}
+"""
+
+
+@pytest.fixture
+def original_files_sample() -> dict:
+    """Sample original files for patch generator tests."""
+    return {
+        "src/main.rs": """fn main() {
+    let ptr: *const i32 = &42;
+    unsafe { *ptr }
+    println!("Done");
+}""",
+        "src/lib.rs": "pub fn helper() {}",
+        "src/utils.rs": "pub fn utility() {}"
+    }
