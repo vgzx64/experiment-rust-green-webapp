@@ -1,1 +1,6 @@
-LLM not enabled - set LLM_ENABLED=true to run
+1. Removed unsafe block and get_unchecked() which bypassed bounds checking
+2. Changed return type to Option<i32> to safely handle out-of-bounds indices
+3. Used arr.get(index) which performs bounds checking and returns Option<&i32>
+4. Added .copied() to convert &i32 to i32 while maintaining safety
+5. In main(), added proper error handling using match to handle both valid and invalid indices
+6. The function now returns None for out-of-bounds indices instead of causing undefined behavior
