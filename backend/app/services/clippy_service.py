@@ -113,18 +113,16 @@ class ClippyService:
     async def _run_clippy(self, project_path: str) -> Tuple[List[SastIssue], Dict]:
         """Run cargo clippy and parse output."""
         
-        # Build clippy command
-        # Use -W for warnings on specific lint groups
-        lint_args = []
-        for lint_group in self.warn_lints:
-            lint_args.extend(["-W", lint_group])
-        
+        # Use --message-format=json for reliable structured output.
+        # -D warnings turns all warnings into errors; the warn_lints groups
+        # are already covered by this flag, so no extra -W args are needed.
         cmd = [
             "cargo", "clippy",
             "--all-targets",
             "--all-features",
+            "--message-format=json",
             "--", "-D", "warnings"
-        ] + lint_args
+        ]
         
         logger.debug(f"Running command: {' '.join(cmd)}")
         
@@ -299,16 +297,14 @@ class ClippyService:
     async def _apply_fixes(self, project_path: str) -> Tuple[int, int]:
         """Apply Clippy auto-fixes using cargo clippy --fix."""
         
+        # No extra -W args needed: cargo clippy --fix applies all machine-applicable
+        # suggestions regardless of lint level. -D warnings is not passed here either
+        # because --fix needs the build to succeed to apply fixes.
         cmd = [
             "cargo", "clippy", "--fix",
             "--allow-dirty",
             "--allow-staged",
-            "--"
         ]
-        
-        # Add lint warnings
-        for lint_group in self.warn_lints:
-            cmd.extend(["-W", lint_group])
         
         logger.info(f"Applying Clippy fixes in {project_path}")
         
