@@ -20,11 +20,11 @@ class SastConfig(BaseSettings):
     clippy_auto_fix: bool = True
     clippy_timeout: int = 120  # seconds
     clippy_warn_lints: list[str] = [
-        "suspicious",
-        "correctness",
-        "style",
-        "complexity",
-        "perf"
+        "clippy::suspicious",
+        "clippy::correctness",
+        "clippy::style",
+        "clippy::complexity",
+        "clippy::perf"
     ]
     
     # Semgrep configuration
