@@ -113,6 +113,9 @@ class ClippyService:
     async def _run_clippy(self, project_path: str) -> Tuple[List[SastIssue], Dict]:
         """Run cargo clippy and parse output."""
         
+        # Ensure project_path is a str (callers may pass a Path object)
+        project_path = str(project_path)
+        
         # Use --message-format=json for reliable structured output.
         # -D warnings turns all warnings into errors; the warn_lints groups
         # are already covered by this flag, so no extra -W args are needed.

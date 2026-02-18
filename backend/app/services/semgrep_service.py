@@ -115,6 +115,9 @@ class SemgrepService:
     async def _run_semgrep(self, project_path: str) -> Tuple[List[SastIssue], Dict]:
         """Run semgrep and parse output."""
         
+        # Ensure project_path is a str (callers may pass a Path object)
+        project_path = str(project_path)
+        
         if self.use_container:
             return await self._run_semgrep_container(project_path)
         else:
