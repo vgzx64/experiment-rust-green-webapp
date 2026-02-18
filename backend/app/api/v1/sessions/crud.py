@@ -9,6 +9,7 @@ from datetime import datetime
 from app.database import get_db
 from app.models.session import SessionStatus as ModelSessionStatus
 from app.models.analysis import Analysis
+from app.models.sast_result import SastResult
 from app.api.dto import (
     CreateSessionInput,
     CreateSessionOutput,
@@ -158,6 +159,27 @@ async def get_session(
         analysis_detail = _build_analysis_detail(analysis)
         analyses.append(analysis_detail)
     
+    # Fetch SAST results for this session
+    sast_result = await db.execute(
+        select(SastResult).where(SastResult.session_id == session_id)
+    )
+    db_sast = sast_result.scalars().all()
+    sast_data = [
+        {
+            "tool": r.tool,
+            "scan_phase": r.scan_phase,
+            "status": r.status,
+            "total_issues": r.total_issues,
+            "summary": r.summary,
+            "issues": r.issues,
+            "auto_fixes_applied": r.auto_fixes_applied,
+            "auto_fixes_failed": r.auto_fixes_failed,
+            "error_message": r.error_message,
+            "created_at": r.created_at.isoformat() if r.created_at is not None else None,
+        }
+        for r in db_sast
+    ]
+    
     from sqlalchemy import inspect
     session_insp = inspect(session)
     
@@ -169,7 +191,8 @@ async def get_session(
         updated_at=session_insp.attrs.updated_at.value,
         completed_at=session_insp.attrs.completed_at.value,
         error_message=session_insp.attrs.error_message.value,
-        analyses=analyses
+        analyses=analyses,
+        sast_results=sast_data
     )
 
 

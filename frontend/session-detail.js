@@ -124,6 +124,9 @@
             // Update SAST verification display
             this.updateSastVerification(session);
             
+            // Render SAST scan results
+            this.renderSastResults(session.sast_results || []);
+            
             // Render findings
             this.renderFindings(session.analyses);
             
@@ -290,6 +293,108 @@
                 clearInterval(this.timeElapsedInterval);
                 this.timeElapsedInterval = null;
             }
+        },
+        
+        // Render SAST scan results from all scan phases
+        renderSastResults: function(sastResults) {
+            const section = document.getElementById('sast-results-section');
+            const container = document.getElementById('sast-results-container');
+            if (!section || !container) return;
+            
+            // Filter to only results that have actual issues or useful status
+            const useful = sastResults.filter(r => r.status !== 'disabled');
+            
+            if (useful.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+            
+            section.style.display = 'block';
+            container.innerHTML = '';
+            
+            useful.forEach(result => {
+                const card = this.createSastResultCard(result);
+                container.appendChild(card);
+            });
+        },
+        
+        // Create a card for a single SAST scan result
+        createSastResultCard: function(result) {
+            const tool = result.tool || 'unknown';
+            const phase = (result.scan_phase || '').replace(/_/g, ' ');
+            const status = result.status || 'unknown';
+            const totalIssues = result.total_issues || 0;
+            const summary = result.summary || {};
+            const issues = result.issues || [];
+            const autoFixesApplied = result.auto_fixes_applied || 0;
+            const autoFixesFailed = result.auto_fixes_failed || 0;
+            
+            // Severity summary pills
+            const severityOrder = ['blocker', 'critical', 'major', 'minor', 'info'];
+            const severityPills = severityOrder
+                .filter(s => summary[s] > 0)
+                .map(s => `<span class="sast-severity-pill sast-severity-${s}">${s}: ${summary[s]}</span>`)
+                .join('');
+            
+            // Individual issues list (collapsed by default if many)
+            let issuesHtml = '';
+            if (issues.length > 0) {
+                const issueRows = issues.map(issue => {
+                    const sev = (issue.severity || 'info').toLowerCase();
+                    const loc = issue.file_path
+                        ? `${this.escapeHtml(issue.file_path)}:${issue.line_start || ''}`
+                        : '';
+                    return `<tr>
+                        <td><span class="sast-severity-pill sast-severity-${sev}">${sev}</span></td>
+                        <td class="sast-rule-id">${this.escapeHtml(issue.rule_id || '')}</td>
+                        <td class="sast-location">${this.escapeHtml(loc)}</td>
+                        <td>${this.escapeHtml(issue.message || '')}</td>
+                    </tr>`;
+                }).join('');
+                
+                const detailsId = `sast-issues-${tool}-${(result.scan_phase || '').replace(/[^a-z0-9]/gi, '-')}`;
+                issuesHtml = `
+                    <details class="sast-issues-details">
+                        <summary>${issues.length} issue${issues.length !== 1 ? 's' : ''} — click to expand</summary>
+                        <div class="sast-issues-table-wrapper">
+                            <table class="sast-issues-table">
+                                <thead><tr><th>Severity</th><th>Rule</th><th>Location</th><th>Message</th></tr></thead>
+                                <tbody>${issueRows}</tbody>
+                            </table>
+                        </div>
+                    </details>`;
+            }
+            
+            // Auto-fix info
+            let autoFixHtml = '';
+            if (autoFixesApplied > 0 || autoFixesFailed > 0) {
+                autoFixHtml = `<div class="sast-autofix-info">
+                    <i class="fas fa-wrench"></i>
+                    Auto-fixes: <strong>${autoFixesApplied}</strong> applied
+                    ${autoFixesFailed > 0 ? `, <strong>${autoFixesFailed}</strong> failed` : ''}
+                </div>`;
+            }
+            
+            // Error message
+            const errorHtml = result.error_message
+                ? `<div class="sast-error-msg"><i class="fas fa-exclamation-triangle"></i> ${this.escapeHtml(result.error_message)}</div>`
+                : '';
+            
+            const card = document.createElement('div');
+            card.className = `sast-result-card sast-status-${status}`;
+            card.innerHTML = `
+                <div class="sast-result-header">
+                    <span class="sast-tool-badge sast-tool-${tool}">${tool.toUpperCase()}</span>
+                    <span class="sast-phase-badge">${this.escapeHtml(phase)}</span>
+                    <span class="sast-status-badge sast-status-${status}">${status}</span>
+                    <span class="sast-issue-count">${totalIssues} issue${totalIssues !== 1 ? 's' : ''}</span>
+                </div>
+                ${severityPills ? `<div class="sast-severity-summary">${severityPills}</div>` : ''}
+                ${autoFixHtml}
+                ${errorHtml}
+                ${issuesHtml}
+            `;
+            return card;
         },
         
         // Update SAST verification display

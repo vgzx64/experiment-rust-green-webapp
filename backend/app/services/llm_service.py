@@ -238,10 +238,15 @@ class LLMService:
                 "llm_metadata": metadata
             }
     
-    async def generate_remediation(self, vulnerable_code: str, analysis: Dict[str, Any]) -> Dict[str, Any]:
+    async def generate_remediation(self, vulnerable_code: str, analysis: Dict[str, Any], sast_context: str = "") -> Dict[str, Any]:
         """
         Generate safe remediation for vulnerable code.
         
+        Args:
+            vulnerable_code: The vulnerable Rust code to fix
+            analysis: Vulnerability analysis results from analyze_vulnerability
+            sast_context: Optional SAST findings to consider as secondary fixes
+            
         Returns:
         - fixed_code: Safe alternative code
         - explanation: Explanation of changes made
@@ -277,13 +282,24 @@ class LLMService:
         vulnerability_info = analysis.get("vulnerability_description", "Security vulnerability")
         cwe = analysis.get("cwe_id", "Unknown CWE")
         
+        sast_section = ""
+        if sast_context:
+            sast_section = f"""
+        
+        Secondary SAST findings (for reference only):
+        {sast_context}
+        
+        Your primary goal is to fix the security vulnerability described above. Only address the SAST findings above if you are fully confident the fix is safe and does not interfere with the primary vulnerability fix. If in doubt, leave those parts unchanged."""
+        
         prompt = f"""Generate a safe remediation for this vulnerable Rust code:
         
         Vulnerable Code:
         {vulnerable_code}
         
+        Primary vulnerability to fix:
         Vulnerability: {vulnerability_info}
         CWE: {cwe}
+        {sast_section}
         
         Provide concise remediation in the specified JSON format."""
         
@@ -331,10 +347,10 @@ class LLMService:
                 "pipeline_complete": True
             }
         
-        # Step 2: Generate remediation
+        # Step 2: Generate remediation (pass SAST context as secondary guidance)
         logger.info("Step 2: Generate remediation")
         vulnerable_snippet = code  # In real implementation, extract vulnerable portion
-        remediation = await self.generate_remediation(vulnerable_snippet, vulnerability_analysis)
+        remediation = await self.generate_remediation(vulnerable_snippet, vulnerability_analysis, sast_context=sast_context)
         
         return {
             "vulnerability_analysis": vulnerability_analysis,

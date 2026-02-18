@@ -1697,6 +1697,208 @@ body {
     margin: 0;
 }
 
+/* ===== SAST Results Section ===== */
+.sast-results-section {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+}
+
+.sast-results-section h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 var(--space-md) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.sast-results-section h3 i {
+    color: var(--warning, #d69e2e);
+}
+
+.sast-result-card {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+    background: var(--bg);
+}
+
+.sast-result-card:last-child {
+    margin-bottom: 0;
+}
+
+.sast-result-card.sast-status-error {
+    border-left: 3px solid var(--danger, #e53e3e);
+}
+
+.sast-result-card.sast-status-success {
+    border-left: 3px solid var(--success, #38a169);
+}
+
+.sast-result-card.sast-status-timeout {
+    border-left: 3px solid var(--warning, #d69e2e);
+}
+
+.sast-result-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-sm);
+}
+
+.sast-tool-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.sast-tool-clippy {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.sast-tool-semgrep {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.sast-phase-badge {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    text-transform: capitalize;
+}
+
+.sast-status-badge {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-weight: 500;
+}
+
+.sast-status-badge.sast-status-success { background: #d1fae5; color: #065f46; }
+.sast-status-badge.sast-status-error   { background: #fee2e2; color: #991b1b; }
+.sast-status-badge.sast-status-timeout { background: #fef3c7; color: #92400e; }
+
+.sast-issue-count {
+    margin-left: auto;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.sast-severity-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-sm);
+}
+
+.sast-severity-pill {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 999px;
+    text-transform: capitalize;
+}
+
+.sast-severity-blocker  { background: #1a1a2e; color: #fff; }
+.sast-severity-critical { background: #fee2e2; color: #991b1b; }
+.sast-severity-major    { background: #fef3c7; color: #92400e; }
+.sast-severity-minor    { background: #dbeafe; color: #1e40af; }
+.sast-severity-info     { background: #f3f4f6; color: #374151; }
+
+.sast-autofix-info {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.sast-error-msg {
+    font-size: 0.8rem;
+    color: var(--danger, #e53e3e);
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.sast-issues-details {
+    margin-top: var(--space-sm);
+}
+
+.sast-issues-details summary {
+    font-size: 0.85rem;
+    color: var(--primary);
+    cursor: pointer;
+    user-select: none;
+    padding: var(--space-xs) 0;
+}
+
+.sast-issues-details summary:hover {
+    text-decoration: underline;
+}
+
+.sast-issues-table-wrapper {
+    overflow-x: auto;
+    margin-top: var(--space-sm);
+}
+
+.sast-issues-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+}
+
+.sast-issues-table th {
+    text-align: left;
+    padding: 6px 8px;
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.sast-issues-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    color: var(--text);
+}
+
+.sast-issues-table tr:last-child td {
+    border-bottom: none;
+}
+
+.sast-rule-id {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+.sast-location {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    color: var(--text-muted);
+}
+
 /* Finding Metadata Badges */
 .finding-metadata {
     display: flex;
@@ -1819,4 +2021,72 @@ body {
 
 .code-block.diff .code-label {
     color: var(--info);
+}
+
+/* ===== Git File Selection List ===== */
+.file-list {
+    margin-top: var(--space-xs);
+}
+
+.file-select-btn-row {
+    display: flex;
+    gap: var(--space-xs);
+    margin-bottom: var(--space-xs);
+}
+
+.file-select-toggle-btn {
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-family: var(--font);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.file-select-toggle-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.file-select-hint {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    font-style: italic;
+    margin-bottom: var(--space-xs);
+}
+
+.git-file-multiselect {
+    width: 100%;
+    min-height: 160px;
+    max-height: 260px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    padding: 4px;
+}
+
+.git-file-multiselect option {
+    padding: 4px 6px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.git-file-multiselect option:checked {
+    background: var(--primary);
+    color: white;
+}
+
+.no-files {
+    font-size: 0.875rem;
+    color: var(--text-light);
+    font-style: italic;
+    padding: var(--space-xs);
+    margin: 0;
 }

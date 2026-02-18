@@ -139,42 +139,58 @@ const RustGreenGitHandlers = {
             this.state.files = response.files;
             this.state.selectedRef = gitRef;
             
-            // Populate file list
+            // Populate file list as a <select multiple>
             fileList.innerHTML = '';
             
             if (response.files.length === 0) {
                 fileList.innerHTML = '<p class="no-files">No Rust files found in repository</p>';
             } else {
-                // Add select all checkbox
-                const selectAllLabel = document.createElement('label');
-                selectAllLabel.className = 'file-select-all';
-                selectAllLabel.innerHTML = `
-                    <input type="checkbox" id="select-all-files" checked />
-                    <span>Select All (${response.files.length} files)</span>
-                `;
-                fileList.appendChild(selectAllLabel);
+                // Button row: Select All / Deselect All
+                const btnRow = document.createElement('div');
+                btnRow.className = 'file-select-btn-row';
                 
-                // Add individual file checkboxes
+                const selectAllBtn = document.createElement('button');
+                selectAllBtn.type = 'button';
+                selectAllBtn.className = 'file-select-toggle-btn';
+                selectAllBtn.textContent = 'Select All';
+                
+                const deselectAllBtn = document.createElement('button');
+                deselectAllBtn.type = 'button';
+                deselectAllBtn.className = 'file-select-toggle-btn';
+                deselectAllBtn.textContent = 'Deselect All';
+                
+                btnRow.appendChild(selectAllBtn);
+                btnRow.appendChild(deselectAllBtn);
+                fileList.appendChild(btnRow);
+                
+                const hint = document.createElement('p');
+                hint.className = 'file-select-hint';
+                hint.textContent = `${response.files.length} file${response.files.length !== 1 ? 's' : ''} — hold Ctrl/Cmd to select multiple`;
+                fileList.appendChild(hint);
+                
+                const select = document.createElement('select');
+                select.id = 'git-file-select';
+                select.setAttribute('multiple', 'multiple');
+                select.className = 'git-file-multiselect';
+                select.setAttribute('size', Math.min(response.files.length, 10));
+                
                 response.files.forEach(file => {
-                    const fileLabel = document.createElement('label');
-                    fileLabel.className = 'file-item';
-                    fileLabel.innerHTML = `
-                        <input type="checkbox" value="${file}" checked />
-                        <i class="fas fa-file-code"></i>
-                        <span>${file}</span>
-                    `;
-                    fileList.appendChild(fileLabel);
+                    const option = document.createElement('option');
+                    option.value = file;
+                    option.textContent = file;
+                    option.selected = true;
+                    select.appendChild(option);
                 });
                 
-                // Select all handler
-                const selectAll = document.getElementById('select-all-files');
-                if (selectAll) {
-                    selectAll.addEventListener('change', (e) => {
-                        fileList.querySelectorAll('.file-item input').forEach(cb => {
-                            cb.checked = e.target.checked;
-                        });
-                    });
-                }
+                fileList.appendChild(select);
+                
+                // Wire up Select All / Deselect All
+                selectAllBtn.addEventListener('click', () => {
+                    Array.from(select.options).forEach(o => { o.selected = true; });
+                });
+                deselectAllBtn.addEventListener('click', () => {
+                    Array.from(select.options).forEach(o => { o.selected = false; });
+                });
             }
             
             RustGreenUtils.showMessage(`Found ${response.files.length} Rust files`, 'success');
@@ -192,9 +208,9 @@ const RustGreenGitHandlers = {
      * @returns {string[]} Selected file paths
      */
     getSelectedFiles: function() {
-        const fileList = document.getElementById('git-file-list');
-        const checkboxes = fileList.querySelectorAll('.file-item input:checked');
-        return Array.from(checkboxes).map(cb => cb.value);
+        const select = document.getElementById('git-file-select');
+        if (!select) return [];
+        return Array.from(select.selectedOptions).map(o => o.value);
     },
     
     /**
