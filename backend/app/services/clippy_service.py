@@ -142,7 +142,7 @@ class ClippyService:
                 process.communicate(),
                 timeout=self.timeout
             )
-        except asyncio.TimeoutError:
+        except (asyncio.TimeoutError, asyncio.CancelledError):
             process.kill()
             raise
         
@@ -311,6 +311,7 @@ class ClippyService:
         
         logger.info(f"Applying Clippy fixes in {project_path}")
         
+        process = None
         try:
             process = await asyncio.create_subprocess_exec(
                 *cmd,
@@ -343,8 +344,14 @@ class ClippyService:
             logger.info(f"Clippy fixes: {fixes_applied} applied, {fixes_failed} failed")
             return fixes_applied, fixes_failed
             
+        except asyncio.CancelledError:
+            if process:
+                process.kill()
+            raise
         except asyncio.TimeoutError:
             logger.error("Clippy fix timed out")
+            if process:
+                process.kill()
             return 0, 0
         except Exception as e:
             logger.error(f"Failed to apply Clippy fixes: {e}")

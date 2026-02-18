@@ -148,7 +148,7 @@ class SemgrepService:
                 process.communicate(),
                 timeout=self.timeout
             )
-        except asyncio.TimeoutError:
+        except (asyncio.TimeoutError, asyncio.CancelledError):
             process.kill()
             raise
         
@@ -201,7 +201,7 @@ class SemgrepService:
                 process.communicate(),
                 timeout=self.timeout
             )
-        except asyncio.TimeoutError:
+        except (asyncio.TimeoutError, asyncio.CancelledError):
             process.kill()
             raise
         
@@ -336,6 +336,7 @@ class SemgrepService:
         
         logger.info(f"Applying Semgrep fixes in {project_path}")
         
+        process = None
         try:
             process = await asyncio.create_subprocess_exec(
                 *cmd,
@@ -365,8 +366,14 @@ class SemgrepService:
             logger.info(f"Semgrep fixes: {fixes_applied} applied")
             return fixes_applied, fixes_failed
             
+        except asyncio.CancelledError:
+            if process:
+                process.kill()
+            raise
         except asyncio.TimeoutError:
             logger.error("Semgrep fix timed out")
+            if process:
+                process.kill()
             return 0, 0
         except Exception as e:
             logger.error(f"Failed to apply Semgrep fixes: {e}")
@@ -390,6 +397,7 @@ class SemgrepService:
         
         logger.info(f"Applying Semgrep fixes in {project_path} (container)")
         
+        process = None
         try:
             process = await asyncio.create_subprocess_exec(
                 *cmd,
@@ -416,8 +424,14 @@ class SemgrepService:
             logger.info(f"Semgrep fixes: {fixes_applied} applied")
             return fixes_applied, fixes_failed
             
+        except asyncio.CancelledError:
+            if process:
+                process.kill()
+            raise
         except asyncio.TimeoutError:
             logger.error("Semgrep fix timed out")
+            if process:
+                process.kill()
             return 0, 0
         except Exception as e:
             logger.error(f"Failed to apply Semgrep fixes: {e}")
